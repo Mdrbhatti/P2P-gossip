@@ -1,1 +1,0 @@
-- wdir of hamza

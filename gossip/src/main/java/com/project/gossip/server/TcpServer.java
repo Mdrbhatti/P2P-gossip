@@ -14,6 +14,13 @@ public class TcpServer extends Server{
 
     this.serverSocket = ServerSocketChannel.open();
     this.serverSocket.bind(new InetSocketAddress(getAddr(), port));
+
+    // Set nonblocking mode for the listening socket
+    this.serverSocket.configureBlocking (false); 
+  }
+  
+  public ServerSocketChannel getServerSocket(){
+    return this.serverSocket;
   }
 }
 

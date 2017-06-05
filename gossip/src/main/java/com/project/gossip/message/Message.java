@@ -1,9 +1,12 @@
 package com.project.gossip.message;
 
-import java.lang.IllegalArgumentException;
 import com.project.gossip.contants.Constants;
+import java.lang.IllegalArgumentException;
+import java.io.Serializable;
 
-public class Message{
+public class Message implements Serializable{
+
+  private static final long serialVersionUID = 1L;
 
   private short size;
   private MessageType type;

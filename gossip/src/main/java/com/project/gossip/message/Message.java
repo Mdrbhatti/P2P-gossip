@@ -16,7 +16,7 @@ public class Message implements Serializable{
       this.size = size;
     }
     else{
-     throw new IllegalArgumentException("invalid message size: "+size);
+      throw new IllegalArgumentException("invalid message size: "+size);
     }
     
     //validity of type is checked inside getMessageType method
@@ -37,9 +37,5 @@ public class Message implements Serializable{
 
   public MessageType getType(){
     return this.type;
-  }
-
-  public static void main(String [] args){
-   
   }
 }

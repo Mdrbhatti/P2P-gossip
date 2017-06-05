@@ -13,7 +13,12 @@ import java.nio.ByteBuffer;
 public class ProtocolServer{
 
   private ServerSocketChannel serverSocket;
-  private Selector selector;
+
+  //selector for new connections and read data events
+  private Selector acceptAndReadSelector;
+
+  //selector used for getting connections which are ready for writing
+  private Selector writeSelector;
 
   //256KB buffer
   private final int BUFFER_SIZE = 256 * 1024;
@@ -26,20 +31,28 @@ public class ProtocolServer{
     //get tcp server socket 
     this.serverSocket = new TcpServer(port, addr).getServerSocket();
 
-    //create selector for event loop
-    selector = Selector.open();
+    //create read and accept selector for event loop
+    acceptAndReadSelector = Selector.open();
+
+    //create selector for write events
+    writeSelector = Selector.open();
 
     // Register server socket with the Selector for accept connection events
-    serverSocket.register(selector, SelectionKey.OP_ACCEPT); 
+    serverSocket.register(acceptAndReadSelector, SelectionKey.OP_ACCEPT); 
   }
 
-  public void eventLoop() throws Exception{
+  /* This event loop handles read data events and new connections events
+     whenever we have a new connection we also register it with writeSelector
+     which is responsible for returning all connections which are ready
+     for data to be written to them */
+
+  public void acceptAndReadEventLoop() throws Exception{
 
     while(true){
       //wait for events
       int numOfChannelsReady = 0;
       try{
-        numOfChannelsReady = selector.select(); 
+        numOfChannelsReady = acceptAndReadSelector.select(); 
       }
       catch(IOException e){
         e.printStackTrace();
@@ -51,7 +64,7 @@ public class ProtocolServer{
       }
 
       // Iterate over the set of selected keys
-      Iterator it = selector.selectedKeys().iterator();
+      Iterator it = acceptAndReadSelector.selectedKeys().iterator();
       while(it.hasNext()){
         SelectionKey key = (SelectionKey) it.next();
 
@@ -77,11 +90,12 @@ public class ProtocolServer{
     //set new channel non-blocking
     socketChannel.configureBlocking(false);
 
-    //register new channel with selection
     //OP_READ : notify when there is data waiting to be read in channel
+    socketChannel.register(acceptAndReadSelector, SelectionKey.OP_READ);
+
     //OP_WRITE: notify when channel is ready for writing data 
-    //**not sure to add OP_WRITE**
-    socketChannel.register(selector, SelectionKey.OP_READ);
+    socketChannel.register(writeSelector, SelectionKey.OP_WRITE);
+
     return 0;
   }
 }

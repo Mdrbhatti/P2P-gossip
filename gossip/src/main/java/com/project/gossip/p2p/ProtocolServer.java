@@ -1,4 +1,4 @@
-package com.project.gossip.api;
+package com.project.gossip.p2p;
 
 import com.project.gossip.server.TcpServer;
 

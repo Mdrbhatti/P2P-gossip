@@ -3,6 +3,7 @@ package com.project.gossip.bootstrap;
 import com.project.gossip.server.UdpServer;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.ByteBuffer;
 
@@ -19,12 +20,14 @@ public class BootStrapServer{
 
   public void listen() throws IOException{
     while(true){
-      SocketAddress sa = this.serverSocket.receive(buffer);
-      
+      // SocketAddress sa = this.serverSocket.receive(buffer);
+      InetSocketAddress clientAddress = (InetSocketAddress) this.serverSocket.receive(buffer);
       //could happen
-      if(sa == null){
+      if(clientAddress == null){
+        System.out.println("Shakku was null: " + clientAddress);
         continue;
       }
+      System.out.println("Client address : " + clientAddress);
       System.out.println("someone connected "+ buffer.toString());
       buffer.flip();
       while(buffer.hasRemaining()){

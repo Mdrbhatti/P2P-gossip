@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.nio.ByteBuffer;
 
 public class BootStrapServer{
@@ -19,21 +21,26 @@ public class BootStrapServer{
   }
 
   public void listen() throws IOException{
+	  HashMap<Integer,String> hashMap = new HashMap<Integer,String>(); 
     while(true){
-      // SocketAddress sa = this.serverSocket.receive(buffer);
       InetSocketAddress clientAddress = (InetSocketAddress) this.serverSocket.receive(buffer);
+      int hash = clientAddress.hashCode();
       //could happen
       if(clientAddress == null){
-        System.out.println("Shakku was null: " + clientAddress);
+        System.out.println("Address was null");
         continue;
       }
-      System.out.println("Client address : " + clientAddress);
-      System.out.println("someone connected "+ buffer.toString());
+      String ip = clientAddress.getAddress().toString() + ":" + clientAddress.getPort();
+      hashMap.put(hash, ip);
+      System.out.println("Someone connected: " + ip);
       buffer.flip();
       while(buffer.hasRemaining()){
         System.out.print((char) buffer.get());
       }
       buffer.clear();
+      System.out.print("Hashmap so far:\n--------------------------------\n");
+      hashMap.forEach((k,v)-> System.out.println(k+", "+v));
+      System.out.print("--------------------------------\n");
     }
   }
 

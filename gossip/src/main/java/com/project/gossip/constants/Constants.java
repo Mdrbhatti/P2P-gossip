@@ -1,4 +1,4 @@
-package com.project.gossip.contants;
+package com.project.gossip.constants;
 
 public final class Constants{
   

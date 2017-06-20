@@ -1,6 +1,6 @@
 package com.project.gossip.message;
 
-import com.project.gossip.contants.Constants;
+import com.project.gossip.constants.Constants;
 import java.lang.IllegalArgumentException;
 import java.io.Serializable;
 

@@ -1,15 +1,17 @@
 package com.project.gossip.p2p.messages;
 
+import java.lang.Exception;
+
 public class HelloMessage extends P2pMessage{
 
-  private String message;
+  private int peerID;
 
-  public HelloMessage(short size, short type, String message){
+  public HelloMessage(short size, short type, int peerID) throws Exception{
     super(size, type);
-    this.message = message;
+    this.peerID = peerID;
   }
 
-  public String getMessage(){
-    return this.message;
+  public int getPeerID(){
+    return this.peerID;
   }
 }

@@ -22,14 +22,8 @@ public class HelloMessageReader{
 
       short size = buffer.getShort();
       short type = buffer.getShort();
-      int peerID = buffer.getInt();
 
-      msg = new HelloMessage(size, type, peerID);
-
-      //check if there is some garbage data
-      if(buffer.hasRemaining()){
-        return null;
-      }
+      msg = new HelloMessage(size, type);
 
       buffer.clear();
     }

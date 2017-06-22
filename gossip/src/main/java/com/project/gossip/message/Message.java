@@ -8,8 +8,8 @@ public class Message implements Serializable{
 
   private static final long serialVersionUID = 1L;
 
-  private short size;
-  private MessageType type;
+  protected short size;
+  protected MessageType type;
 
   public Message(short size, short typeVal){
     if(validSize(size)){

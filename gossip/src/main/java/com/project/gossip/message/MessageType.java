@@ -12,7 +12,8 @@ public enum MessageType{
 
   // Protocol Message Type
   GOSSIP_PROPAGATE((short) 504),
-  GOSSIP_HELLO((short) 505);
+  GOSSIP_HELLO((short) 505),
+  GOSSIP_PEER_LIST((short) 506);
 
   private short val;
  

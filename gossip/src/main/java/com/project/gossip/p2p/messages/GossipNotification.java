@@ -1,17 +1,20 @@
 package com.project.gossip.p2p.messages;
 
+
 public class GossipNotification extends P2pMessage{
 
   private short messageId;
   private short datatype;
   private byte [] data;
 
-  public GossipNotification(short size, short type, short messageId,
-                            short datatype, byte [] data){
-    super(size, type);
+  public GossipNotification(short size, short type, short messageId, 
+                            short datatype, byte [] data) throws Exception{
     this.messageId = messageId;
     this.datatype = datatype;
     this.data = data;
+
+    super.setType(type);
+    super.setSize(size);
   }
 
   public short getMessageId(){

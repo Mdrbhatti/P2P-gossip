@@ -4,7 +4,6 @@ import com.project.gossip.message.Message;
 
 public class P2pMessage extends Message{
 
-  public P2pMessage(short size, short type){
-    super(size, type);
+  public P2pMessage(){
   }
 }

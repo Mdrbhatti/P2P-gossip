@@ -8,19 +8,11 @@ public class Message implements Serializable{
 
   private static final long serialVersionUID = 1L;
 
-  protected short size;
-  protected MessageType type;
+  private short size;
+  private MessageType type;
 
-  public Message(short size, short typeVal){
-    if(validSize(size)){
-      this.size = size;
-    }
-    else{
-      throw new IllegalArgumentException("invalid message size: "+size);
-    }
-    
-    //validity of type is checked inside getMessageType method
-    this.type = MessageType.getMessageType(typeVal);
+  public Message(){
+
   }
 
   private boolean validSize(short size){
@@ -31,8 +23,22 @@ public class Message implements Serializable{
     return true;
   }
 
+  public void setSize(short size){
+    if(validSize(size)){
+      this.size = size;
+    }
+    else{
+      throw new IllegalArgumentException("invalid message size: "+size);
+    }
+  }
+
   public short getSize(){
     return this.size;
+  }
+
+  public void setType(short typeVal) throws Exception{
+    //validity of type is checked inside getMessageType method
+    this.type = MessageType.getMessageType(typeVal);
   }
 
   public MessageType getType(){

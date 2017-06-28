@@ -1,5 +1,7 @@
 package com.project.gossip.api.messages;
 
+import java.lang.Exception;
+
 public class GossipAnnounce extends ApiMessage{
 
   private byte ttl;
@@ -8,12 +10,14 @@ public class GossipAnnounce extends ApiMessage{
   private byte [] data;
 
   public GossipAnnounce(short size, short type, byte ttl, byte reserved,
-                        short datatype, byte [] data){
-    super(size, type);
+                        short datatype, byte [] data) throws Exception{
     this.ttl = ttl;
     this.reserved = reserved; 
     this.datatype = datatype;
     this.data = data;
+
+    super.setSize(size);
+    super.setType(type);
   }
 
   public byte getTtl(){

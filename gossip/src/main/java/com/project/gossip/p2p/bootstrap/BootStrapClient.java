@@ -18,9 +18,17 @@ public class BootStrapClient{
   private DatagramChannel channel;
   private InetSocketAddress bootStrapServerAddr;
   private ByteBuffer readBuffer;
+  private int clientPort;
+  private String clientAddr;
 
-  public BootStrapClient(String serverAddr, int serverPort)throws Exception{
+  public BootStrapClient(String serverAddr, int serverPort, String clientAddr,
+                         int clientPort) throws Exception{
+
+    this.clientAddr = clientAddr;
+    this.clientPort = clientPort;
+
     this.channel = DatagramChannel.open();
+    this.channel.socket().bind(new InetSocketAddress(clientAddr, clientPort));
     this.bootStrapServerAddr = new InetSocketAddress(serverAddr, serverPort);
     this.channel.connect(this.bootStrapServerAddr);
     //TODO: Fix hardcoding
@@ -42,7 +50,7 @@ public class BootStrapClient{
     readBuffer.clear();
 
     if(peerListMsg == null){
-      System.out.println("Invalide Peer List Message Recv");
+      System.out.println("Invalid Peer List Message Recvd");
       return null;
     }
     else{
@@ -52,7 +60,8 @@ public class BootStrapClient{
   }
 
   public static void main(String [] args) throws Exception{
-    BootStrapClient c = new BootStrapClient("127.0.0.1", 54352);
+    BootStrapClient c = new BootStrapClient("127.0.0.1", 54352, args[0], 
+                                             Integer.parseInt(args[1]));
     for(String peerIP : c.getPeersList()){
       System.out.println(peerIP);
     }

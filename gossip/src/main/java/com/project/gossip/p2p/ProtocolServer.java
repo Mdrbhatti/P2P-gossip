@@ -3,7 +3,11 @@ package com.project.gossip.p2p;
 import com.project.gossip.server.TcpServer;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+
 import java.io.IOException;
+
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.SelectionKey;
@@ -13,6 +17,8 @@ import java.nio.ByteBuffer;
 public class ProtocolServer{
 
   private ServerSocketChannel serverSocket;
+
+  private List<SocketChannel> connectedPeers;
 
   //selector for new connections and read data events
   private Selector acceptAndReadSelector;
@@ -27,9 +33,12 @@ public class ProtocolServer{
   //same buffer used for reading and writing
   private ByteBuffer buffer = ByteBuffer.allocateDirect (BUFFER_SIZE); 
 
-  public ProtocolServer(int port, String addr) throws Exception{
+  public ProtocolServer(String addr, int port) throws Exception{
     //get tcp server socket 
     this.serverSocket = new TcpServer(port, addr).getServerSocket();
+
+    //list to maintain connected peer channels
+    this.connectedPeers = new ArrayList<SocketChannel>();
 
     //create read and accept selector for event loop
     acceptAndReadSelector = Selector.open();
@@ -86,6 +95,8 @@ public class ProtocolServer{
       //could happen because serverChannel is non-blocking
       return -1;
     }
+ 
+    connectedPeers.add(socketChannel);
   
     //set new channel non-blocking
     socketChannel.configureBlocking(false);

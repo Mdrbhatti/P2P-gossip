@@ -59,18 +59,11 @@ public class BootStrapServer{
         writeBuffer.flip();
         int bytesSent = serverSocket.send(writeBuffer, clientAddress);
         writeBuffer.clear();
-      }
-      
+      }     
     }
   }
 
   public static void main(String [] args) throws Exception{
-    //just for testing, will be removed
-    /*
-      run bootstrap server
-      for testing purpose use `cat README.md | nc -u 127.0.0.1 54352`
-      to write to server. Currently server just outputs what is receives
-     */
 
     BootStrapServer server = new BootStrapServer(54352, "127.0.0.1");
     server.listen();

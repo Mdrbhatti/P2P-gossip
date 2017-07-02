@@ -37,14 +37,13 @@ public class ProtocolCli {
       if (cmd.hasOption("h")){
         help();
       }
-      else if (cmd.hasOption("c")) {
+      
+      if (cmd.hasOption("c")) {
         configFilePath = cmd.getOptionValue("c");
       }
-      else if(cmd.hasOption("s")){
+      
+      if(cmd.hasOption("s")){
         gossipSectionName = cmd.getOptionValue("s");
-      }
-      else {
-        help();
       }
     } 
     catch (ParseException e) {

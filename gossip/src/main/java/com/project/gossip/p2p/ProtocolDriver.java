@@ -12,27 +12,55 @@ public class ProtocolDriver{
 
   private ProtocolServer server;
 
-  public ProtocolDriver(String addr, int port) throws Exception{
-    this.server = new ProtocolServer(addr, port);
+  //Number of peers the current peer has to exchange information with
+  private int degree;
+
+  private String protocolServerAddr;
+  private int protocolServerPort;
+
+  private String bootStrapServerAddr;
+  private int bootStrapServerPort;
+
+  public ProtocolDriver(SubnodeConfiguration conf) throws Exception{
+  
+    this.degree = Integer.parseInt(conf.getString("max_connections"));
+
+    String [] p2pServerConf = serverConf(conf, "listen_address");
+    this.protocolServerAddr = p2pServerConf[0];
+    this.protocolServerPort = Integer.parseInt(p2pServerConf[1]);
+
+    String [] bootStrapServerConf = serverConf(conf, "bootstrapper");
+    this.bootStrapServerAddr = bootStrapServerConf[0];
+    this.bootStrapServerPort =  Integer.parseInt(bootStrapServerConf[1]);
+
+  }
+
+  private String [] serverConf(SubnodeConfiguration conf, String key){
+    return conf.getString(key).split(":");
+  }
+
+  public void printConf(){
+    System.out.println("Degree: "+degree);
+    System.out.println("P2p Server Addr: "+protocolServerAddr);
+    System.out.println("P2p Server Port: "+protocolServerPort);
+    System.out.println("Bootstrap Server Addr: "+bootStrapServerAddr);
+    System.out.println("Bootstrap Server Port: "+bootStrapServerPort);
+
   }
 
   public static void main(String [] args) throws Exception{
 
     ProtocolCli cli = new ProtocolCli(args);
     cli.parse();
-    System.out.println(cli.configFilePath);
+
     HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
                                                 cli.configFilePath);
 
     SubnodeConfiguration gossipSec = confFile.getSection(cli.gossipSectionName);
-    Iterator it1 = gossipSec.getKeys();
+    ProtocolDriver driver = new ProtocolDriver(gossipSec);
 
-            while (it1.hasNext()) {
-                // Get element 
-                Object key = it1.next(); 
-                System.out.print("Key " + key.toString() +  " Value " +
-                  gossipSec.getString(key.toString()) + "\n");
-            }
+    //print set configurations
+    driver.printConf();
   }
 }
 

@@ -2,6 +2,8 @@ package com.project.gossip.p2p;
 
 import com.project.gossip.server.TcpServer;
 
+import java.net.InetSocketAddress;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -12,12 +14,12 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.ClosedChannelException;
 import java.nio.ByteBuffer; 
 
 public class ProtocolServer{
 
   private ServerSocketChannel serverSocket;
-
   private List<SocketChannel> connectedPeers;
 
   //selector for new connections and read data events
@@ -34,10 +36,8 @@ public class ProtocolServer{
   private ByteBuffer buffer = ByteBuffer.allocateDirect (BUFFER_SIZE); 
 
   public ProtocolServer(String addr, int port) throws Exception{
-    //get tcp server socket 
-    this.serverSocket = new TcpServer(port, addr).getServerSocket();
 
-    //list to maintain connected peer channels
+    this.serverSocket = new TcpServer(port, addr).getServerSocket();
     this.connectedPeers = new ArrayList<SocketChannel>();
 
     //create read and accept selector for event loop
@@ -79,13 +79,28 @@ public class ProtocolServer{
 
         //new incoming connection event
         if(key.isAcceptable()){
-          this.accept(key);
+          SocketChannel channel = acceptNewConnection(key);
+          if(channel != null && channel.isConnected()){
+            registerChannelWithSelectors(channel);
+            connectedPeers.add(channel);
+          }
         }
       }
     }
   }
 
-  private int accept(SelectionKey key) throws IOException{
+  private void registerChannelWithSelectors(SocketChannel channel) 
+                                              throws ClosedChannelException{
+
+    //OP_READ : notify when there is data waiting to be read in channel
+    channel.register(acceptAndReadSelector, SelectionKey.OP_READ);
+
+    //OP_WRITE: notify when channel is ready for writing data 
+    channel.register(writeSelector, SelectionKey.OP_WRITE);
+  }
+
+  private SocketChannel acceptNewConnection(SelectionKey key) 
+                                                          throws IOException{
     //get the channel
     ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
  
@@ -93,21 +108,31 @@ public class ProtocolServer{
     SocketChannel socketChannel = serverChannel.accept();
     if(socketChannel == null){
       //could happen because serverChannel is non-blocking
-      return -1;
+      return null;
     }
  
-    connectedPeers.add(socketChannel);
+    socketChannel.configureBlocking(true);
+
+    return socketChannel;
+  }
+
+  public SocketChannel initiateConnection(String addr, int port) 
+                                                          throws IOException {
+    SocketChannel socketChannel = SocketChannel.open();
+    socketChannel.configureBlocking(true);
   
-    //set new channel non-blocking
-    socketChannel.configureBlocking(false);
+    socketChannel.connect(new InetSocketAddress(addr, port));
+     
+    if(socketChannel != null && socketChannel.isConnected()){
+      registerChannelWithSelectors(socketChannel);
+      connectedPeers.add(socketChannel);
+    }
+   
+    return socketChannel;
+  }
 
-    //OP_READ : notify when there is data waiting to be read in channel
-    socketChannel.register(acceptAndReadSelector, SelectionKey.OP_READ);
-
-    //OP_WRITE: notify when channel is ready for writing data 
-    socketChannel.register(writeSelector, SelectionKey.OP_WRITE);
-
-    return 0;
+  public List<SocketChannel> getConnectedPeers(){
+    return connectedPeers;
   }
 }
 

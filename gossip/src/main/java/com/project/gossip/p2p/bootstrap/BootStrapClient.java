@@ -1,4 +1,4 @@
-package com.project.gossip.p2p;
+package com.project.gossip.p2p.bootstrap;
 
 import com.project.gossip.p2p.messages.HelloMessage;
 import com.project.gossip.p2p.messages.PeerList;

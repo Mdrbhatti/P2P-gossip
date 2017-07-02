@@ -21,7 +21,11 @@ public class ProtocolDriver{
   private String bootStrapServerAddr;
   private int bootStrapServerPort;
 
-  public ProtocolDriver(SubnodeConfiguration conf) throws Exception{
+  private String bootStrapClientAddr;
+  private int bootStrapClientPort;
+
+  public ProtocolDriver(SubnodeConfiguration conf, ProtocolCli cli) 
+                                                            throws Exception{
   
     this.degree = Integer.parseInt(conf.getString("max_connections"));
 
@@ -33,6 +37,17 @@ public class ProtocolDriver{
     this.bootStrapServerAddr = bootStrapServerConf[0];
     this.bootStrapServerPort =  Integer.parseInt(bootStrapServerConf[1]);
 
+    this.bootStrapClientAddr = cli.peerLocalAddr;
+    this.bootStrapClientPort =  cli.peerLocalPort;
+
+    //print set configurations
+    printConf();
+
+    Peer peer = new Peer(this.degree, this.protocolServerAddr, 
+                         this.protocolServerPort, this.bootStrapServerAddr,
+                         this.bootStrapServerPort, this.bootStrapClientAddr, 
+                         this.bootStrapClientPort);
+    peer.start();
   }
 
   private String [] serverConf(SubnodeConfiguration conf, String key){
@@ -45,6 +60,8 @@ public class ProtocolDriver{
     System.out.println("P2p Server Port: "+protocolServerPort);
     System.out.println("Bootstrap Server Addr: "+bootStrapServerAddr);
     System.out.println("Bootstrap Server Port: "+bootStrapServerPort);
+    System.out.println("Bootstrap Client Addr: "+bootStrapClientAddr);
+    System.out.println("Bootstrap Client Port: "+bootStrapClientPort);
 
   }
 
@@ -57,10 +74,8 @@ public class ProtocolDriver{
                                                 cli.configFilePath);
 
     SubnodeConfiguration gossipSec = confFile.getSection(cli.gossipSectionName);
-    ProtocolDriver driver = new ProtocolDriver(gossipSec);
+    ProtocolDriver driver = new ProtocolDriver(gossipSec, cli);
 
-    //print set configurations
-    driver.printConf();
   }
 }
 

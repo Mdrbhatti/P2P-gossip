@@ -1,4 +1,4 @@
-package com.project.gossip.p2p;
+package com.project.gossip.p2p.bootstrap;
 
 import com.project.gossip.server.UdpServer;
 import com.project.gossip.p2p.messageReader.HelloMessageReader;
@@ -65,7 +65,7 @@ public class BootStrapServer{
 
   public static void main(String [] args) throws Exception{
 
-    BootStrapServer server = new BootStrapServer(54352, "127.0.0.1");
+    BootStrapServer server = new BootStrapServer(6002, "127.0.0.1");
     server.listen();
   }
 }

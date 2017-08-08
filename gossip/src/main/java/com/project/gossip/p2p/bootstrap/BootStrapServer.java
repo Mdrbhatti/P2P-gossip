@@ -67,5 +67,6 @@ public class BootStrapServer{
 
     BootStrapServer server = new BootStrapServer(6002, "127.0.0.1");
     server.listen();
+    System.out.println("hamza");
   }
 }

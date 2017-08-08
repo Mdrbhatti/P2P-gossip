@@ -1,7 +1,4 @@
 target
-.idea/
-.metadata
-.classpath
-.project
-.settings/
+.*
+!/.gitignore
 bin/

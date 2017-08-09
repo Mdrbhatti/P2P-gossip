@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 public class P2PLogger {
-  Logger logger;
+  public static Logger logger;
   FileHandler fh;
   
   public Logger getNewLogger(String name, String filePath, String level){

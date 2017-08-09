@@ -2,6 +2,7 @@ package com.project.gossip.p2p.bootstrap;
 
 import com.project.gossip.server.UdpServer;
 import com.project.gossip.logger.P2PLogger;
+
 import com.project.gossip.p2p.ProtocolCli;
 import com.project.gossip.p2p.messageReader.HelloMessageReader;
 import com.project.gossip.p2p.messages.HelloMessage;
@@ -12,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
+
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -25,11 +27,16 @@ public class BootStrapServer{
   private DatagramChannel serverSocket;
   private ByteBuffer readBuffer;
   private HashSet<String> peers = new HashSet<String>();
+  private static Logger logger;
 
   public BootStrapServer(int port, String addr) throws Exception{
     this.serverSocket = new UdpServer(port, addr).getServerSocket();
     //TODO: remove hardcoding
-    this.readBuffer = ByteBuffer.allocate(64*128);   
+    this.readBuffer = ByteBuffer.allocate(64*128);
+  }
+  
+  public void setLogger(Logger logger){
+    this.logger = logger;
   }
 
   public void listen() throws Exception{
@@ -39,7 +46,7 @@ public class BootStrapServer{
 
       //could happen
       if(clientAddress == null){
-        System.out.println("Address was null");
+        logger.info("Address was null");
         continue;
       }
 
@@ -48,14 +55,14 @@ public class BootStrapServer{
       readBuffer.clear();
 
       if( msg == null){
-        System.out.println("Invalid Hello Message Recv");
+        logger.info("Invalid Hello Message Recv");
       }
       else{
         String address = clientAddress.getAddress().getHostAddress();
         peers.add(address);
 
-        System.out.println("Someone connected: "+ address);
-        System.out.println("Sending peers list");
+        logger.info("Someone connected: "+ address);
+        logger.info("Sending peers list");
 
         //reply with peers list
         PeerList peerListMsg = new PeerList(new ArrayList<String>(peers));
@@ -83,6 +90,7 @@ public class BootStrapServer{
     BootStrapServer server = new BootStrapServer(
         Integer.parseInt(bootStrapServerConf[1]),
         bootStrapServerConf[0]);
+    server.setLogger(logger);
     server.listen();
     logger.info("Hamza");
     

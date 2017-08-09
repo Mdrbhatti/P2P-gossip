@@ -73,8 +73,8 @@ public class BootStrapServer{
     cli.parse();
     String path = "/home/mdrbhatti/Desktop/logs/log.txt";
     String name = "Bootstrap";
-    String level="";
-    Logger logger = P2PLogger.getLogger(name,path,level);
+    String level= "INFO";
+    Logger logger = new P2PLogger().getNewLogger(name,path,level);
     HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
                                                 cli.configFilePath);
 

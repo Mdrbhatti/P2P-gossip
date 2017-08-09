@@ -1,39 +1,87 @@
 package com.project.gossip.p2p;
 
-import com.project.gossip.p2p.bootstrap.BootStrapClient;
-
 import java.lang.Exception;
 
-public class Peer{
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 
-  private ProtocolServer protocolServer;
-  private BootStrapClient bootstrapClient;
+public class Peer {
+
+  private ProtocolServer server;
+
+  //Number of peers the current peer has to exchange information with
   private int degree;
 
-  public Peer(int degree, String protocolServerAddr, int protocolServerPort,
-                          String bootStrapServerAddr, int bootStrapServerPort,
-                          String bootStrapClientAddr, int bootStrapClientPort)
-                                                             throws Exception{
-    
-    this.protocolServer = new ProtocolServer(protocolServerAddr,
-                                             protocolServerPort);
+  private static String protocolServerAddr;
+  private static int protocolServerPort;
 
-    this.bootstrapClient = new BootStrapClient(bootStrapServerAddr,
-                                               bootStrapServerPort,
-                                               bootStrapClientAddr,
-                                               bootStrapClientPort);
+  private String bootStrapServerAddr;
+  private int bootStrapServerPort;
+
+  private String bootStrapClientAddr;
+  private int bootStrapClientPort;
+
+  private ProtocolServer protocolServer;
+
+  public Peer(SubnodeConfiguration conf, ProtocolCli cli)
+                                                            throws Exception{
+  
+    this.degree = Integer.parseInt(conf.getString("max_connections"));
+
+    String [] p2pServerConf = serverConf(conf, "listen_address");
+    this.protocolServerAddr = p2pServerConf[0];
+    this.protocolServerPort = Integer.parseInt(p2pServerConf[1]);
+
+    String [] bootStrapServerConf = serverConf(conf, "bootstrapper");
+    this.bootStrapServerAddr = bootStrapServerConf[0];
+    this.bootStrapServerPort =  Integer.parseInt(bootStrapServerConf[1]);
+
+    this.bootStrapClientAddr = cli.peerLocalAddr;
+    this.bootStrapClientPort =  cli.peerLocalPort;
+
+    //print set configurations
+    printConf();
+
+    protocolServer = new ProtocolServer(protocolServerAddr,
+            protocolServerPort, bootStrapServerAddr, bootStrapServerPort);
   }
 
-  public void start() throws Exception{
+  private String [] serverConf(SubnodeConfiguration conf, String key){
+    return conf.getString(key).split(":");
+  }
 
-    while(true){
-      for(String peerIP : bootstrapClient.getPeersList()){
-        System.out.println(peerIP);
-      }
-      System.out.println();
-      //Pause for 2 seconds
-      Thread.sleep(2000);
-    }
+  public static int getProtocolServerPort(){
+    return protocolServerPort;
+  }
+
+  public static String getProtocolServerAddr(){
+    return protocolServerAddr;
+  }
+
+  public void printConf(){
+    System.out.println("Degree: "+degree);
+    System.out.println("P2p Server Addr: "+protocolServerAddr);
+    System.out.println("P2p Server Port: "+protocolServerPort);
+    System.out.println("Bootstrap Server Addr: "+bootStrapServerAddr);
+    System.out.println("Bootstrap Server Port: "+bootStrapServerPort);
+  }
+
+  public void start(){
+    this.protocolServer.start();
+  }
+
+  public static void main(String [] args) throws Exception{
+
+    ProtocolCli cli = new ProtocolCli(args);
+    cli.parse();
+
+    HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
+                                                cli.configFilePath);
+
+    SubnodeConfiguration gossipSec = confFile.getSection(cli.gossipSectionName);
+    Peer driver = new Peer(gossipSec, cli);
+    driver.start();
+
   }
 }
 

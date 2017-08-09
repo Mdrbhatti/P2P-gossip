@@ -16,7 +16,7 @@ public class TcpServer extends Server{
     this.serverSocket.bind(new InetSocketAddress(getAddr(), port));
 
     // Set nonblocking mode for the listening socket
-    this.serverSocket.configureBlocking (false); 
+    this.serverSocket.configureBlocking (false);
   }
   
   public ServerSocketChannel getServerSocket(){

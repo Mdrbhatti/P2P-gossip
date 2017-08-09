@@ -2,12 +2,7 @@ package com.project.gossip.p2p;
 
 import java.lang.Exception;
 
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
 public class ProtocolCli {
 
@@ -24,18 +19,31 @@ public class ProtocolCli {
     this.args = args;
     this.options = new Options();
 
-    options.addOption("h", "help", false, "display help for cli");
-    options.addOption("c", "config", true, "path to configuration file");
-    options.addOption("s", "section", true, "gossip section name in conf file");
-    options.addOption("l", "localaddr", true, "peer's local address for "+
-                      "binding bootstrap client default: 127.0.0.1");
-    options.addOption("p", "localport", true, "peer's port for "+
-                      "binding bootstrap client default: 9999");
+    options.addOption(OptionBuilder.withLongOpt("help")
+            .withDescription("display help for cli")
+            .create("h"));
+
+    options.addOption(OptionBuilder.withLongOpt("config")
+            .withDescription("path to configuration file")
+            .hasArg().isRequired().create("c"));
+
+    options.addOption(OptionBuilder.withLongOpt("section")
+            .withDescription("gossip section name in conf file")
+            .hasArg().create("s"));
+
+    options.addOption(OptionBuilder.withLongOpt("localaddr")
+            .withDescription("peer's local address")
+            .hasArg().create("l"));
+
+    options.addOption(OptionBuilder.withLongOpt("localport")
+            .withDescription("peer's local port")
+            .hasArg().create("p"));
+
   }
 
   public void parse() {
 
-    CommandLineParser parser = new BasicParser();
+    CommandLineParser parser = new GnuParser();
     CommandLine cmd = null;
     try {
       cmd = parser.parse(options, args);

@@ -65,7 +65,7 @@ public class BootStrapServer{
 
   public static void main(String [] args) throws Exception{
 
-    BootStrapServer server = new BootStrapServer(6002, "127.0.0.1");
+    BootStrapServer server = new BootStrapServer(6002, "10.148.131.178");
     server.listen();
     System.out.println("hamza");
   }

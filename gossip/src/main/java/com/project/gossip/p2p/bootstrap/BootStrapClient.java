@@ -21,14 +21,16 @@ public class BootStrapClient{
   private int clientPort;
   private String clientAddr;
 
-  public BootStrapClient(String serverAddr, int serverPort, String clientAddr,
-                         int clientPort) throws Exception{
+  public BootStrapClient(String serverAddr, int serverPort, String clientAddr)
+          throws
+          Exception{
 
     this.clientAddr = clientAddr;
     this.clientPort = clientPort;
 
     this.channel = DatagramChannel.open();
-    this.channel.socket().bind(new InetSocketAddress(clientAddr, clientPort));
+
+    this.channel.socket().bind(new InetSocketAddress(clientAddr, 0));
     this.bootStrapServerAddr = new InetSocketAddress(serverAddr, serverPort);
     this.channel.connect(this.bootStrapServerAddr);
     //TODO: Fix hardcoding
@@ -59,11 +61,4 @@ public class BootStrapClient{
     }
   }
 
-  public static void main(String [] args) throws Exception{
-    BootStrapClient c = new BootStrapClient("127.0.0.1", 54352, args[0], 
-                                             Integer.parseInt(args[1]));
-    for(String peerIP : c.getPeersList()){
-      System.out.println(peerIP);
-    }
-  }
 }

@@ -18,9 +18,10 @@ public class P2PLogger {
         SimpleFormatter formatter = new SimpleFormatter();  
         fh.setFormatter(formatter);  
     } catch (Exception e) {  
+        e.printStackTrace();
         System.out.println("Failed to initialize logger!");
     }
-    logger.info("TEST");
+    logger.info("Logging [" + level + "] for " + name + " enabled!");
     return logger;
   }
 }

@@ -78,21 +78,24 @@ public class BootStrapServer{
   public static void main(String [] args) throws Exception{
     ProtocolCli cli = new ProtocolCli(args);
     cli.parse();
-    String path = "/home/mdrbhatti/Desktop/logs/log.txt";
-    String name = "Bootstrap";
-    String level= "INFO";
-    Logger logger = new P2PLogger().getNewLogger(name,path,level);
     HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
                                                 cli.configFilePath);
-
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
     String [] bootStrapServerConf = conf.getString("bootstrapper").split(":");
+    
+    String id = conf.getString("bootstrapper");
+    String name = "bootstrap";
+//    String path = name + "." + id + ".log";
+    String path = name + ".log";
+    String level= "INFO";
+    Logger logger = new P2PLogger().getNewLogger(name, path, level);
+    
     BootStrapServer server = new BootStrapServer(
         Integer.parseInt(bootStrapServerConf[1]),
         bootStrapServerConf[0]);
     server.setLogger(logger);
     server.listen();
-    logger.info("Hamza");
+    logger.info("This should never happen");
     
     System.out.println("hamza");
   }

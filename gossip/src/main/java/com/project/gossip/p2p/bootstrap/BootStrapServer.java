@@ -44,6 +44,7 @@ public class BootStrapServer{
       }
 
       //validates a hello message
+      readBuffer.flip();
       HelloMessage msg = HelloMessageReader.read(readBuffer);
       readBuffer.clear();
 

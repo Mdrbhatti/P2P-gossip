@@ -40,7 +40,7 @@ public class BootStrapClient{
   public List<String> getPeersList() throws Exception{
 
     //send hello packet
-    HelloMessage helloMsg = new HelloMessage();
+    HelloMessage helloMsg = new HelloMessage(clientAddr);
 
     ByteBuffer writeBuffer = helloMsg.getByteBuffer();
     writeBuffer.flip();
@@ -48,6 +48,7 @@ public class BootStrapClient{
     writeBuffer.clear();
 
     channel.read(readBuffer);
+    readBuffer.flip();
     PeerList peerListMsg = PeerListMessageReader.read(readBuffer);
     readBuffer.clear();
 

@@ -1,6 +1,11 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.message.MessageType;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
+import com.project.gossip.p2p.messageReader.HelloMessageReader;
+import com.project.gossip.p2p.messageReader.PeerListMessageReader;
+import com.project.gossip.p2p.messages.HelloMessage;
+import com.project.gossip.p2p.messages.PeerList;
 import com.project.gossip.server.TcpServer;
 
 import java.lang.reflect.Array;
@@ -23,6 +28,7 @@ import java.nio.ByteBuffer;
 public class ProtocolServer extends Thread{
 
   private ServerSocketChannel serverSocket;
+  private String peerAddr;
 
   private BootStrapClient bootStrapClient;
 
@@ -49,6 +55,8 @@ public class ProtocolServer extends Thread{
 
     this.serverSocket = new TcpServer(protocolServerPort, protocolServerAddr)
             .getServerSocket();
+
+    this.peerAddr = protocolServerAddr;
 
     this.bootStrapClient = new BootStrapClient(bootStrapServerAddr,
             bootStrapServerPort, protocolServerAddr);
@@ -84,18 +92,12 @@ public class ProtocolServer extends Thread{
     List<String> peerList = bootStrapClient.getPeersList();
 
     for (String peer : peerList) {
-      if (!peer.equals(Peer.getProtocolServerAddr()) &&
-              !connectedPeers.containsKey(peer)) {
+      if (!peer.equals(peerAddr) && !connectedPeers.containsKey(peer)) {
         System.out.println("Trying to connect to: " + peer);
 
-        try {
-          SocketChannel sc = initiateConnection(peer);
-          if (sc != null) {
-            connectedPeers.put(peer, sc);
-            sendHelloMessage(sc);
-          }
-        } catch (Exception exp) {
-          System.out.println("Unable to connect to: " + peer);
+        SocketChannel channel = initiateConnection(peer);
+        if (channel != null) {
+          sendHelloMessage(channel, peerAddr);
         }
       }
     }
@@ -129,19 +131,13 @@ public class ProtocolServer extends Thread{
           InetSocketAddress remoteAddr = (InetSocketAddress) channel.socket()
                   .getRemoteSocketAddress();
           if (channel != null && channel.isConnected()) {
-
               registerChannelWithSelectors(channel);
-              connectedPeers.put(remoteAddr.getAddress().getHostAddress(),
-                      channel);
-              System.out.println("Successfully Connected " + remoteAddr
-                      .getAddress().getHostAddress());
-              sendHelloMessage(connectedPeers.get(remoteAddr.getAddress().getHostAddress()));
+              sendHelloMessage(channel, peerAddr);
           }
         }
         //event fired when some channel sends data
         if(key.isReadable()){
           System.out.println("READ EVENT");
-          System.out.println("HASH "+key.hashCode());
           SocketChannel socketChannel = (SocketChannel) key.channel();
           this.buffer.clear();
 
@@ -150,6 +146,41 @@ public class ProtocolServer extends Thread{
             while((numOfBytesRead = socketChannel.read(this.buffer)) > 0){
               System.out.println("Bytes recvd: "+numOfBytesRead);
             }
+            //read mode
+            this.buffer.flip();
+            short size = buffer.getShort();
+            short type = buffer.getShort();
+            if(MessageType.GOSSIP_HELLO.getVal() == type){
+              System.out.println("Something of type hello");
+              this.buffer.rewind();
+              System.out.println("Buffer position "+this.buffer.position());
+
+              HelloMessage helloMessage = HelloMessageReader.read(this.buffer);
+              if(helloMessage!=null){
+                System.out.println("-------------------------------");
+                System.out.println("Hello Message Received from: " +
+                        ""+helloMessage.getSourceIp());
+                connectedPeers.put(helloMessage.getSourceIp(), socketChannel);
+                System.out.println("Successfully Connected to: "
+                        +helloMessage.getSourceIp());
+                System.out.println("-------------------------------");
+              }
+            }
+            if(MessageType.GOSSIP_PEER_LIST.getVal() == type){
+              this.buffer.rewind();
+              PeerList peerListMsg = PeerListMessageReader.read(this.buffer);
+              if(peerListMsg!=null){
+                System.out.println("-------------------------------");
+                System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
+                for(String ip: peerListMsg.getPeerAddrList()){
+                  System.out.println(ip);
+                }
+                System.out.println("-------------------------------");
+              }
+            }
+
+
+
           } catch (IOException e) {
             // conn closed by remote disgracefully
             key.cancel();
@@ -174,18 +205,15 @@ public class ProtocolServer extends Thread{
   }
 
 
-  /**
-   * Spew a greeting to the incoming client connection.
-   * @param channel The newly connected SocketChannel to say hello to.
-   */
-  public void sendHelloMessage(SocketChannel channel)
-          throws Exception
-  {
-    System.out.println("Sending Hello Msg");
-    buffer.clear( );
-    buffer.put ("Hi there!\r\n".getBytes( ));
-    buffer.flip( );
-    channel.write (buffer);
+
+  public void sendHelloMessage(SocketChannel channel, String sourceAddr)
+          throws Exception {
+    HelloMessage helloMsg = new HelloMessage(sourceAddr);
+
+    ByteBuffer writeBuffer = helloMsg.getByteBuffer();
+    writeBuffer.flip();
+    channel.write(writeBuffer);
+    writeBuffer.clear();
   }
 
   private void registerChannelWithSelectors(SocketChannel channel) 

@@ -1,5 +1,6 @@
 package com.project.gossip.p2p.messageReader;
 
+import com.project.gossip.constants.Helpers;
 import com.project.gossip.p2p.messages.HelloMessage;
 import java.nio.ByteBuffer;
 
@@ -18,12 +19,11 @@ public class HelloMessageReader{
         return null;
       }
 
-      buffer.flip();
-
       short size = buffer.getShort();
       short type = buffer.getShort();
+      String ip = Helpers.convertIntIpToString(buffer.getInt());
 
-      msg = new HelloMessage(size, type);
+      msg = new HelloMessage(size, type, ip);
 
       buffer.clear();
     }

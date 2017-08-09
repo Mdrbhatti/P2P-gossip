@@ -5,30 +5,45 @@ import com.project.gossip.constants.*;
 
 import java.lang.Exception;
 import java.lang.IllegalArgumentException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public class HelloMessage extends P2pMessage{
 
 
-  public HelloMessage() throws Exception{
+  String sourceIp = "";
+  public HelloMessage(String sourceIp) throws Exception{
     super.setType(MessageType.GOSSIP_HELLO.getVal());
-    super.setSize(Constants.HEADER_LENGTH);
+    short size = Constants.HEADER_LENGTH + 4;
+    super.setSize(size);
+    this.sourceIp = sourceIp;
   }
 
-  public HelloMessage(short size, short type) throws Exception{
+  public HelloMessage(short size, short type, String sourceIp) throws Exception{
     if(MessageType.GOSSIP_HELLO.getVal() != type){
       throw new IllegalArgumentException();
     }
 
+    this.sourceIp = sourceIp;
     super.setSize(size);
     super.setType(type);
   }
 
-  public ByteBuffer getByteBuffer(){
+  private int convertIpStringToInt(String IP) throws UnknownHostException {
+    return ByteBuffer.wrap(InetAddress.getByName(IP).getAddress()).getInt();
+  }
+
+  public ByteBuffer getByteBuffer() throws Exception{
     short size = super.getSize();
     ByteBuffer buffer = ByteBuffer.allocate(size);
     buffer.putShort(size);
     buffer.putShort(super.getType().getVal());
+    buffer.putInt(convertIpStringToInt(sourceIp));
     return buffer;
+  }
+
+  public String getSourceIp(){
+    return sourceIp;
   }
 }

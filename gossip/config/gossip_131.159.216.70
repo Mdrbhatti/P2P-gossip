@@ -2,5 +2,5 @@
 cache_size = 50
 max_connections = 30
 bootstrapper = 127.0.0.1:6002
-listen_address = 127.0.0.2:6001
+listen_address = 131.159.216.70:6001
 api_address = 127.0.0.1:7001

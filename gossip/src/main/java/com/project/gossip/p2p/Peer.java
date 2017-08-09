@@ -22,6 +22,7 @@ public class Peer {
   private int bootStrapClientPort;
 
   private ProtocolServer protocolServer;
+  private GossipPeerList gossipPeerListThread;
 
   public Peer(SubnodeConfiguration conf, ProtocolCli cli)
                                                             throws Exception{
@@ -44,6 +45,8 @@ public class Peer {
 
     protocolServer = new ProtocolServer(protocolServerAddr,
             protocolServerPort, bootStrapServerAddr, bootStrapServerPort);
+
+    gossipPeerListThread = new GossipPeerList(protocolServer);
   }
 
   private String [] serverConf(SubnodeConfiguration conf, String key){
@@ -68,6 +71,7 @@ public class Peer {
 
   public void start(){
     this.protocolServer.start();
+    this.gossipPeerListThread.start();
   }
 
   public static void main(String [] args) throws Exception{

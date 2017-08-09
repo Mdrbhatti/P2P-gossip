@@ -3,6 +3,7 @@ package com.project.gossip.p2p;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
 import com.project.gossip.server.TcpServer;
 
+import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 
 import java.util.HashMap;
@@ -26,7 +27,7 @@ public class ProtocolServer extends Thread{
   private BootStrapClient bootStrapClient;
 
   // key is ip address
-  public HashMap<String, SocketChannel> connectedPeers;
+  private HashMap<String, SocketChannel> connectedPeers;
 
   //selector for new connections and read data events
   public Selector acceptAndReadSelector;
@@ -104,13 +105,7 @@ public class ProtocolServer extends Thread{
       int numOfChannelsReady = 0;
       try{
         numOfChannelsReady = acceptAndReadSelector.select(5000);
-        Thread.sleep(3000);
-        
         System.out.println("Size of Connected Peers: "+connectedPeers.size());
-
-        for(String peer: connectedPeers.keySet()){
-          sendHelloMessage(connectedPeers.get(peer));
-        }
 
       }
       catch(IOException e){
@@ -232,6 +227,10 @@ public class ProtocolServer extends Thread{
       registerChannelWithSelectors(socketChannel);
     }
     return socketChannel;
+  }
+
+  public HashMap<String,SocketChannel> getConnectedPeers(){
+    return connectedPeers;
   }
 }
 

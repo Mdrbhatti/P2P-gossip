@@ -73,22 +73,20 @@ public class BootStrapServer{
     cli.parse();
     String path = "/home/mdrbhatti/Desktop/logs/log.txt";
     String name = "Bootstrap";
-    Logger logger = new P2PLogger().getLogger(name,path);
+    String level="";
+    Logger logger = P2PLogger.getLogger(name,path,level);
     HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
                                                 cli.configFilePath);
 
-<<<<<<< Updated upstream
-    BootStrapServer server = new BootStrapServer(6002, "10.148.131.178");
-=======
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
     String [] bootStrapServerConf = conf.getString("bootstrapper").split(":");
     BootStrapServer server = new BootStrapServer(
         Integer.parseInt(bootStrapServerConf[1]),
         bootStrapServerConf[0]);
->>>>>>> Stashed changes
     server.listen();
-    
+    logger.info("Hamza");
     
     System.out.println("hamza");
   }
+
 }

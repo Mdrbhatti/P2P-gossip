@@ -1,6 +1,7 @@
 package com.project.gossip.p2p.bootstrap;
 
 import com.project.gossip.server.UdpServer;
+import com.project.gossip.p2p.ProtocolCli;
 import com.project.gossip.p2p.messageReader.HelloMessageReader;
 import com.project.gossip.p2p.messages.HelloMessage;
 import com.project.gossip.p2p.messages.PeerList;
@@ -11,6 +12,10 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
+
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
+
 import java.util.ArrayList;
 
 import java.lang.Short;
@@ -64,8 +69,17 @@ public class BootStrapServer{
   }
 
   public static void main(String [] args) throws Exception{
+    ProtocolCli cli = new ProtocolCli(args);
+    cli.parse();
 
-    BootStrapServer server = new BootStrapServer(6002, "127.0.0.1");
+    HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
+                                                cli.configFilePath);
+
+    SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
+    String [] bootStrapServerConf = conf.getString("bootstrapper").split(":");
+    BootStrapServer server = new BootStrapServer(
+        Integer.parseInt(bootStrapServerConf[1]),
+        bootStrapServerConf[0]);
     server.listen();
     System.out.println("hamza");
   }

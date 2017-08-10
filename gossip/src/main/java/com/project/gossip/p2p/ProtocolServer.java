@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
 import com.project.gossip.server.TcpServer;
 
@@ -9,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.ArrayList;
 
 import java.io.IOException;
@@ -86,7 +88,7 @@ public class ProtocolServer extends Thread{
     for (String peer : peerList) {
       if (!peer.equals(Peer.getProtocolServerAddr()) &&
               !connectedPeers.containsKey(peer)) {
-        System.out.println("Trying to connect to: " + peer);
+        P2PLogger.log(Level.INFO, "Trying to connect to: " + peer);
 
         try {
           SocketChannel sc = initiateConnection(peer);
@@ -95,7 +97,7 @@ public class ProtocolServer extends Thread{
             sendHelloMessage(sc);
           }
         } catch (Exception exp) {
-          System.out.println("Unable to connect to: " + peer);
+          P2PLogger.log(Level.INFO, "Unable to connect to: " + peer);
         }
       }
     }
@@ -105,7 +107,7 @@ public class ProtocolServer extends Thread{
       int numOfChannelsReady = 0;
       try{
         numOfChannelsReady = acceptAndReadSelector.select(5000);
-        System.out.println("Size of Connected Peers: "+connectedPeers.size());
+        P2PLogger.log(Level.INFO, "Size of Connected Peers: "+connectedPeers.size());
 
       }
       catch(IOException e){
@@ -124,7 +126,7 @@ public class ProtocolServer extends Thread{
 
         //new incoming connection event
         if(key.isAcceptable()) {
-          System.out.println("Accept Event Triggered");
+          P2PLogger.log(Level.INFO, "Accept Event Triggered");
           SocketChannel channel = acceptNewConnection(key);
           InetSocketAddress remoteAddr = (InetSocketAddress) channel.socket()
                   .getRemoteSocketAddress();
@@ -133,22 +135,22 @@ public class ProtocolServer extends Thread{
               registerChannelWithSelectors(channel);
               connectedPeers.put(remoteAddr.getAddress().getHostAddress(),
                       channel);
-              System.out.println("Successfully Connected " + remoteAddr
+              P2PLogger.log(Level.INFO, "Successfully Connected " + remoteAddr
                       .getAddress().getHostAddress());
               sendHelloMessage(connectedPeers.get(remoteAddr.getAddress().getHostAddress()));
           }
         }
         //event fired when some channel sends data
         if(key.isReadable()){
-          System.out.println("READ EVENT");
-          System.out.println("HASH "+key.hashCode());
+          P2PLogger.log(Level.INFO, "READ EVENT");
+          P2PLogger.log(Level.INFO, "HASH "+key.hashCode());
           SocketChannel socketChannel = (SocketChannel) key.channel();
           this.buffer.clear();
 
           int numOfBytesRead=0;
           try {
             while((numOfBytesRead = socketChannel.read(this.buffer)) > 0){
-              System.out.println("Bytes recvd: "+numOfBytesRead);
+              P2PLogger.log(Level.INFO, "Bytes recvd: "+numOfBytesRead);
             }
           } catch (IOException e) {
             // conn closed by remote disgracefully
@@ -162,7 +164,7 @@ public class ProtocolServer extends Thread{
           if (numOfBytesRead == -1) {
             key.channel().close();
             key.cancel();
-            System.out.println("SOCKET CLOSED BY REMOTE HOST");
+            P2PLogger.log(Level.INFO, "SOCKET CLOSED BY REMOTE HOST");
             connectedPeers.remove(socketChannel.socket().getInetAddress()
                     .getHostAddress());
           }
@@ -181,7 +183,7 @@ public class ProtocolServer extends Thread{
   public void sendHelloMessage(SocketChannel channel)
           throws Exception
   {
-    System.out.println("Sending Hello Msg");
+    P2PLogger.log(Level.INFO, "Sending Hello Msg");
     buffer.clear( );
     buffer.put ("Hi there!\r\n".getBytes( ));
     buffer.flip( );

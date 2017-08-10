@@ -13,7 +13,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
-
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -27,16 +27,11 @@ public class BootStrapServer{
   private DatagramChannel serverSocket;
   private ByteBuffer readBuffer;
   private HashSet<String> peers = new HashSet<String>();
-  private static Logger logger;
 
   public BootStrapServer(int port, String addr) throws Exception{
     this.serverSocket = new UdpServer(port, addr).getServerSocket();
     //TODO: remove hardcoding
     this.readBuffer = ByteBuffer.allocate(64*128);
-  }
-  
-  public void setLogger(Logger logger){
-    this.logger = logger;
   }
 
   public void listen() throws Exception{
@@ -46,7 +41,7 @@ public class BootStrapServer{
 
       //could happen
       if(clientAddress == null){
-        logger.info("Address was null");
+        P2PLogger.log(Level.INFO, "Address was null");
         continue;
       }
 
@@ -55,14 +50,14 @@ public class BootStrapServer{
       readBuffer.clear();
 
       if( msg == null){
-        logger.info("Invalid Hello Message Recv");
+        P2PLogger.log(Level.INFO, "Invalid Hello Message Recv");
       }
       else{
         String address = clientAddress.getAddress().getHostAddress();
         peers.add(address);
 
-        logger.info("Someone connected: "+ address);
-        logger.info("Sending peers list");
+        P2PLogger.log(Level.INFO, "Someone connected: " + address);
+        P2PLogger.log(Level.INFO, "Sending peers list");
 
         //reply with peers list
         PeerList peerListMsg = new PeerList(new ArrayList<String>(peers));
@@ -83,21 +78,11 @@ public class BootStrapServer{
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
     String [] bootStrapServerConf = conf.getString("bootstrapper").split(":");
     
-    String id = conf.getString("bootstrapper");
-    String name = "bootstrap";
-//    String path = name + "." + id + ".log";
-    String path = name + ".log";
-    String level= "INFO";
-    Logger logger = new P2PLogger().getNewLogger(name, path, level);
-    
+    // Initialize logger
+    P2PLogger logger = new P2PLogger("bootstrap", "bootstrap.log", "INFO");
     BootStrapServer server = new BootStrapServer(
         Integer.parseInt(bootStrapServerConf[1]),
         bootStrapServerConf[0]);
-    server.setLogger(logger);
     server.listen();
-    logger.info("This should never happen");
-    
-    System.out.println("hamza");
   }
-
 }

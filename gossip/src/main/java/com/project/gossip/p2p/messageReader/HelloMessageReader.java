@@ -24,8 +24,28 @@ public class HelloMessageReader{
       String ip = Helpers.convertIntIpToString(buffer.getInt());
 
       msg = new HelloMessage(size, type, ip);
+    }
+    catch(Exception exp){
+      exp.printStackTrace();
+      return null;
+    }
+    return msg;
+  }
 
-      buffer.clear();
+  public static HelloMessage read(ByteBuffer header, ByteBuffer payload){
+    HelloMessage msg = null;
+
+    try{
+      //check for buffer underflow
+      if(!header.hasRemaining() && !payload.hasRemaining()){
+        return null;
+      }
+
+      short size = header.getShort();
+      short type = header.getShort();
+      String ip = Helpers.convertIntIpToString(payload.getInt());
+
+      msg = new HelloMessage(size, type, ip);
     }
     catch(Exception exp){
       exp.printStackTrace();

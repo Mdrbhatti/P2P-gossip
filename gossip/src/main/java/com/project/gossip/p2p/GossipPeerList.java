@@ -45,8 +45,11 @@ public class GossipPeerList extends Thread {
               for(String neighborIp: peers){
                   System.out.println("Sending peer list to: "+neighborIp);
                   writeBuffer.flip();
-                  while (writeBuffer.hasRemaining()){
-                      connectedPeers.get(neighborIp).write(writeBuffer);
+                  SocketChannel channel = connectedPeers.get(neighborIp);
+                  if(channel.isConnected()) {
+                      while (writeBuffer.hasRemaining()) {
+                          channel.write(writeBuffer);
+                      }
                   }
               }
           }

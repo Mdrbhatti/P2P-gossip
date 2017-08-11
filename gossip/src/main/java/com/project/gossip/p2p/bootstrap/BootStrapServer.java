@@ -29,12 +29,12 @@ public class BootStrapServer{
   public BootStrapServer(int port, String addr) throws Exception{
     this.serverSocket = new UdpServer(port, addr).getServerSocket();
     //TODO: remove hardcoding
-    this.readBuffer = ByteBuffer.allocate(64*128);   
+    this.readBuffer = ByteBuffer.allocate(64*128);
   }
 
   public void listen() throws Exception{
     while(true){
-      InetSocketAddress clientAddress = (InetSocketAddress) 
+      InetSocketAddress clientAddress = (InetSocketAddress)
                                         this.serverSocket.receive(readBuffer);
 
       //could happen

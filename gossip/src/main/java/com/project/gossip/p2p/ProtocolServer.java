@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
 import com.project.gossip.p2p.messageReader.HelloMessageReader;
@@ -8,14 +9,15 @@ import com.project.gossip.p2p.messages.HelloMessage;
 import com.project.gossip.p2p.messages.PeerList;
 import com.project.gossip.server.TcpServer;
 
+import javax.swing.table.AbstractTableModel;
 import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
-
 import java.io.IOException;
 
 import java.nio.channels.ServerSocketChannel;
@@ -46,7 +48,10 @@ public class ProtocolServer extends Thread{
 
   //single thread is servicing all channels, so no danger of conccurent access
   //same buffer used for reading and writing
-  private ByteBuffer buffer = ByteBuffer.allocateDirect (BUFFER_SIZE); 
+  private ByteBuffer payloadBuffer = ByteBuffer.allocateDirect (BUFFER_SIZE);
+
+  //header buffer
+  private ByteBuffer headerBuffer = ByteBuffer.allocate(Constants.HEADER_LENGTH);
 
   public ProtocolServer(String protocolServerAddr, int protocolServerPort,
                         String bootStrapServerAddr, int bootStrapServerPort)
@@ -87,18 +92,24 @@ public class ProtocolServer extends Thread{
      which is responsible for returning all connections which are ready
      for data to be written to them */
 
-  public void acceptAndReadEventLoop() throws Exception{
+  public void acceptAndReadEventLoop(){
 
-    List<String> peerList = bootStrapClient.getPeersList();
+    List<String> peerList = null;
+    try {
+      peerList = bootStrapClient.getPeersList();
+    }
+    catch (Exception exp){
+      System.out.println("BOOTSTRAPPING FAILED: Unable to get peers list from" +
+              " bootstrap");
+      System.out.println("Exiting...");
+      System.exit(-1);
+      exp.printStackTrace();
+    }
 
     for (String peer : peerList) {
       if (!peer.equals(peerAddr) && !connectedPeers.containsKey(peer)) {
         System.out.println("Trying to connect to: " + peer);
-
         SocketChannel channel = initiateConnection(peer);
-        if (channel != null) {
-          sendHelloMessage(channel, peerAddr);
-        }
       }
     }
 
@@ -108,7 +119,6 @@ public class ProtocolServer extends Thread{
       try{
         numOfChannelsReady = acceptAndReadSelector.select(5000);
         System.out.println("Size of Connected Peers: "+connectedPeers.size());
-
       }
       catch(IOException e){
         e.printStackTrace();
@@ -137,65 +147,76 @@ public class ProtocolServer extends Thread{
         }
         //event fired when some channel sends data
         if(key.isReadable()){
-          System.out.println("READ EVENT");
           SocketChannel socketChannel = (SocketChannel) key.channel();
-          this.buffer.clear();
+          this.payloadBuffer.clear();
 
-          int numOfBytesRead=0;
+          int bytesRead=0;
           try {
-            while((numOfBytesRead = socketChannel.read(this.buffer)) > 0){
-              System.out.println("Bytes recvd: "+numOfBytesRead);
-            }
-            //read mode
-            this.buffer.flip();
-            short size = buffer.getShort();
-            short type = buffer.getShort();
-            if(MessageType.GOSSIP_HELLO.getVal() == type){
-              System.out.println("Something of type hello");
-              this.buffer.rewind();
-              System.out.println("Buffer position "+this.buffer.position());
+            //read the header
+            bytesRead = socketChannel.read(headerBuffer);
 
-              HelloMessage helloMessage = HelloMessageReader.read(this.buffer);
-              if(helloMessage!=null){
-                System.out.println("-------------------------------");
-                System.out.println("Hello Message Received from: " +
-                        ""+helloMessage.getSourceIp());
-                connectedPeers.put(helloMessage.getSourceIp(), socketChannel);
-                System.out.println("Successfully Connected to: "
-                        +helloMessage.getSourceIp());
-                System.out.println("-------------------------------");
-              }
+            //read returns -1 when remote closes conn gracefully
+            if (bytesRead == -1) {
+              key.cancel();
+              closeConnection(socketChannel);
             }
-            if(MessageType.GOSSIP_PEER_LIST.getVal() == type){
-              this.buffer.rewind();
-              PeerList peerListMsg = PeerListMessageReader.read(this.buffer);
-              if(peerListMsg!=null){
-                System.out.println("-------------------------------");
-                System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
-                for(String ip: peerListMsg.getPeerAddrList()){
-                  System.out.println(ip);
+            else{
+
+              //change the header buffer to read mode
+              headerBuffer.flip();
+
+              short size = headerBuffer.getShort();
+              short type = headerBuffer.getShort();
+
+              //message reader will also read the header, move the position of
+              // buffer to 0 to allow re-reading it
+              headerBuffer.rewind();
+
+              //read the payload
+              while(bytesRead != size){
+                bytesRead += socketChannel.read(payloadBuffer);
+              }
+
+              //change the payload buffer to read mode
+              payloadBuffer.flip();
+
+              if(MessageType.GOSSIP_HELLO.getVal() == type){
+
+                HelloMessage helloMessage = HelloMessageReader.read
+                        (headerBuffer, payloadBuffer);
+                if(helloMessage!=null){
+                  System.out.println("-------------------------------");
+                  System.out.println("Hello Message Received from: " +
+                          ""+helloMessage.getSourceIp());
+                  connectedPeers.put(helloMessage.getSourceIp(), socketChannel);
+                  System.out.println("Successfully Connected to: "
+                          +helloMessage.getSourceIp());
+                  System.out.println("-------------------------------");
                 }
-                System.out.println("-------------------------------");
+              }
+              if(MessageType.GOSSIP_PEER_LIST.getVal() == type){
+
+                PeerList peerListMsg = PeerListMessageReader.read
+                        (headerBuffer, payloadBuffer);
+                if(peerListMsg!=null){
+                  System.out.println("-------------------------------");
+                  System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
+                  for(String ip: peerListMsg.getPeerAddrList()){
+                    System.out.println(ip);
+                  }
+                  System.out.println("-------------------------------");
+                }
               }
             }
 
-
+            //clear the buffers
+            headerBuffer.clear();
+            payloadBuffer.clear();
 
           } catch (IOException e) {
             // conn closed by remote disgracefully
             key.cancel();
-            socketChannel.close();
-            connectedPeers.remove(socketChannel.socket().getInetAddress()
-                    .getHostAddress());
-          }
-
-          //read returns -1 when remote closes conn gracefully
-          if (numOfBytesRead == -1) {
-            key.channel().close();
-            key.cancel();
-            System.out.println("SOCKET CLOSED BY REMOTE HOST");
-            connectedPeers.remove(socketChannel.socket().getInetAddress()
-                    .getHostAddress());
+            closeConnection(socketChannel);
           }
         }
         // Remove key from selected set; it's been handled
@@ -206,59 +227,103 @@ public class ProtocolServer extends Thread{
 
 
 
-  public void sendHelloMessage(SocketChannel channel, String sourceAddr)
-          throws Exception {
-    HelloMessage helloMsg = new HelloMessage(sourceAddr);
-
-    ByteBuffer writeBuffer = helloMsg.getByteBuffer();
-    writeBuffer.flip();
-    channel.write(writeBuffer);
-    writeBuffer.clear();
+  public void sendHelloMessage(SocketChannel channel, String sourceAddr){
+    try {
+      HelloMessage helloMsg = new HelloMessage(sourceAddr);
+      ByteBuffer writeBuffer = helloMsg.getByteBuffer();
+      writeBuffer.flip();
+      channel.write(writeBuffer);
+      writeBuffer.clear();
+    }
+    catch (Exception exp){
+      exp.printStackTrace();
+    }
   }
 
-  private void registerChannelWithSelectors(SocketChannel channel) 
-                                              throws ClosedChannelException{
+  private void registerChannelWithSelectors(SocketChannel channel){
 
     //OP_READ : notify when there is data waiting to be read in channel
-    channel.register(acceptAndReadSelector, SelectionKey.OP_READ);
-
+    try {
+      channel.register(acceptAndReadSelector, SelectionKey.OP_READ);
+    }
+    catch (ClosedChannelException exp){
+      exp.printStackTrace();
+    }
     //OP_WRITE: notify when channel is ready for writing data
     //channel.register(writeSelector, SelectionKey.OP_WRITE);
   }
 
-  private SocketChannel acceptNewConnection(SelectionKey key) 
-                                                          throws IOException{
+  private SocketChannel acceptNewConnection(SelectionKey key){
 
     //get the channel
     ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
  
     //accept conenction
-    SocketChannel socketChannel = serverChannel.accept();
-    if(socketChannel == null){
-      //could happen because serverChannel is non-blocking
-      return null;
+    SocketChannel socketChannel = null;
+    try{
+      socketChannel = serverChannel.accept();
+      if(socketChannel == null){
+        //could happen because serverChannel is non-blocking
+        return null;
+      }
+      socketChannel.configureBlocking(false);
     }
-
-    socketChannel.configureBlocking(false);
+    catch (Exception exp){
+      exp.printStackTrace();
+    }
     return socketChannel;
   }
 
-  public SocketChannel initiateConnection(String addr) throws Exception {
-    SocketChannel socketChannel = SocketChannel.open();
-    socketChannel.configureBlocking(false);
-
-    socketChannel.connect(new InetSocketAddress(addr, 6001));
-
-    while (!socketChannel.finishConnect()) {}
+  public SocketChannel initiateConnection(String addr){
+    SocketChannel socketChannel = null;
+    try {
+      socketChannel = SocketChannel.open();
+      socketChannel.configureBlocking(false);
+      socketChannel.connect(new InetSocketAddress(addr, 6001));
+      while (!socketChannel.finishConnect()) {}
+    }
+    catch (IOException exp){
+      exp.printStackTrace();
+      System.out.println("Unable to connect to peer "+addr);
+    }
 
     if(socketChannel != null && socketChannel.isConnected()){
       registerChannelWithSelectors(socketChannel);
+      sendHelloMessage(socketChannel, peerAddr);
     }
     return socketChannel;
+  }
+
+  public void closeConnection(SocketChannel channel){
+    try{
+      String address = getPeerIpFromSocket(channel);
+      System.out.println("Connection to peer "+ address +" closed");
+      connectedPeers.remove(address);
+      channel.close();
+    }
+    catch (IOException exp){
+      exp.printStackTrace();
+    }
   }
 
   public HashMap<String,SocketChannel> getConnectedPeers(){
     return connectedPeers;
+  }
+
+  /*
+  * Hashmap of connectedPeers contains <ip,socket> entries
+  * when peers close their connection we can use the getAddress function of
+  * socket, but during testing and dev phase we are running multiple peers
+  * on same machine using different IPs from private address space, when
+  * getAddress function is called on socket, it always returns 127.0.0.1
+  * eventhough the IP was 127.0.0.2. */
+  public String getPeerIpFromSocket(SocketChannel channel){
+      for (String key : connectedPeers.keySet()) {
+        if (connectedPeers.get(key).equals(channel)) {
+          return key;
+        }
+      }
+      return null;
   }
 }
 

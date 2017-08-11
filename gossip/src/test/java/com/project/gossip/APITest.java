@@ -115,7 +115,7 @@ public class APITest {
 	
 	public void sendGossipValidation(){
 		P2PLogger.log(Level.INFO, "Sending gossip validation");
-		short reserved = 32767;
+		byte reserved = (byte)0xF1;
 		short size = (short) ((8));
 		short messageId = 12;
 		try {
@@ -124,7 +124,8 @@ public class APITest {
 			buffer1.putShort(size);
 			buffer1.putShort(MessageType.GOSSIP_VALIDATION.getVal());
 			buffer1.putShort(messageId);
-			buffer1.putShort(reserved);
+			buffer1.put(reserved);
+			buffer1.put(reserved);
 			buffer1.flip();
 		    socketChannel.write(buffer1);
 		    buffer1.clear();

@@ -1,6 +1,7 @@
 package com.project.gossip.api;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
@@ -122,12 +123,24 @@ public class APIServer extends Thread{
 									"reserved: " + reserved + "datatype: " + datatype);
 							break;
 						case 503:
+							byte res[] = new byte[2];
 							P2PLogger.log(Level.INFO, "Received GOSSIP_VALIDATION: "+numOfBytesRead);
 							short messageId = buffer.getShort();
-							reserved = buffer.getShort();
-							
+							res[0] = buffer.get();
+							res[1] = buffer.get();
+//							Short.
+//							byte shortie = (byte)((reserved >> 8) & 0xff);
+//							System.out.println("shortie: " + shortie);
+//							BigInteger.valueOf(reserved).testBit(15);
+							for (int i = 0; i < 16; i++) {
+								int j=0;
+								if(i>7){
+									j=1;
+								}
+								System.out.print(BigInteger.valueOf(res[j]).testBit(i%8) ? "1": "0");
+							}
 							P2PLogger.log(Level.INFO, "Type: " + type + "\nSize: " + size+
-									 "messageid: " + messageId + "reserved: " + reserved);
+									 "messageid: " + messageId + "reserved: " +BigInteger.valueOf(res[1]).testBit(7));
 							break;
 						default:
 							P2PLogger.log(Level.SEVERE, "Invalid message type. DROPPING!");
@@ -157,7 +170,7 @@ public class APIServer extends Thread{
 			}
 		}
 	}
-
+	
 	private SocketChannel acceptNewConnection(SelectionKey key) throws IOException{
 		ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
 		SocketChannel socketChannel = serverChannel.accept();

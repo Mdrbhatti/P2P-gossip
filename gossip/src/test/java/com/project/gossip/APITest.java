@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.logging.Level;
 
 import com.project.gossip.api.messages.GossipAnnounce;
+import com.project.gossip.api.messages.GossipNotify;
+import com.project.gossip.api.messages.GossipValidation;
 import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
@@ -58,26 +60,71 @@ public class APITest {
 	}
 	
 	public void sendMessages(){
-		sendGossipAnnounce();
+//		sendGossipAnnounce();
+		sendGossipValidation();
 	}
 	
 	public void sendGossipAnnounce(){
 		P2PLogger.log(Level.INFO, "Started API TEST Server");
 		byte[] data = "Meow meow".getBytes();
-		byte reserved = 0;
+		short reserved = 0;
 		byte ttl = 4;
-		short size = (short) ((4 + 4) + data.length);
+		short size = (short) ((8) + data.length);
 		short datatype = 12;
 		try {
-			GossipAnnounce msg = new GossipAnnounce(size, MessageType.GOSSIP_ANNOUNCE.getVal(), ttl, reserved, datatype, data);
+//			GossipAnnounce msg = new GossipAnnounce(size, MessageType.GOSSIP_ANNOUNCE.getVal(), ttl, reserved, datatype, data);
 			ByteBuffer buffer1 = ByteBuffer.allocate(size);
 			buffer1.putShort(size);
 //			buffer1.putShort(MessageType.GOSSIP_ANNOUNCE.getVal());
-			buffer1.putShort((short)501);
+			buffer1.putShort((short)500);
 			buffer1.put(ttl);
-			buffer1.put(reserved);
+			buffer1.putShort(reserved);
 			buffer1.putShort(datatype);
 			buffer1.put(data);
+			buffer1.flip();
+		    socketChannel.write(buffer1);
+		    buffer1.clear();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	public void sendGossipNotify(){
+		P2PLogger.log(Level.INFO, "Started API TEST Server");
+		byte reserved = 0;
+		short size = (short) ((8));
+		short datatype = 12;
+		try {
+			GossipNotify msg = new GossipNotify(size, MessageType.GOSSIP_ANNOUNCE.getVal(), reserved, datatype);
+			ByteBuffer buffer1 = ByteBuffer.allocate(size);
+			buffer1.putShort(size);
+			buffer1.putShort(MessageType.GOSSIP_NOTIFY.getVal());
+			buffer1.putShort(reserved);
+			buffer1.putShort(datatype);
+			buffer1.flip();
+		    socketChannel.write(buffer1);
+		    buffer1.clear();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	public void sendGossipValidation(){
+		P2PLogger.log(Level.INFO, "Sending gossip validation");
+		short reserved = 32767;
+		short size = (short) ((8));
+		short messageId = 12;
+		try {
+//			GossipValidation msg = new GossipValidation(size, MessageType.GOSSIP_ANNOUNCE.getVal(), reserved, messageId);
+			ByteBuffer buffer1 = ByteBuffer.allocate(size);
+			buffer1.putShort(size);
+			buffer1.putShort(MessageType.GOSSIP_VALIDATION.getVal());
+			buffer1.putShort(messageId);
+			buffer1.putShort(reserved);
 			buffer1.flip();
 		    socketChannel.write(buffer1);
 		    buffer1.clear();

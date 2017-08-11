@@ -88,21 +88,25 @@ public class APIServer extends Thread{
 					SocketChannel socketChannel = (SocketChannel) key.channel();
 					this.buffer.clear();
 					int numOfBytesRead=0;
+					P2PLogger.log(Level.INFO, "READ EVENTx1");
 					try {
 						while((numOfBytesRead = socketChannel.read(this.buffer)) > 0){
 							P2PLogger.log(Level.INFO, "Bytes recvd: "+numOfBytesRead);
 
 						}
+						System.out.println("MADE IT HERE");
 						buffer.flip();
+						// Construct objects here
 						short size = buffer.getShort();
 						short type = buffer.getShort();
-						byte reserved;
+						short reserved;
 						short datatype;
 						switch(type){
 						case 500:
+							// Decrease TTL
 							P2PLogger.log(Level.INFO, "Received GOSSIP_ANNOUNCE: "+numOfBytesRead);
 							byte ttl = buffer.get();
-							reserved = buffer.get();
+							reserved = buffer.getShort();
 							datatype = buffer.getShort();
 							byte[] dst = new byte[buffer.remaining()];
 							buffer.get(dst);
@@ -112,7 +116,7 @@ public class APIServer extends Thread{
 							break;
 						case 501:
 							P2PLogger.log(Level.INFO, "Received GOSSIP_NOTIFY: "+numOfBytesRead);
-							reserved = buffer.get();
+							reserved = buffer.getShort();
 							datatype = buffer.getShort();
 							P2PLogger.log(Level.INFO, "Type: " + type + "\nSize: " + size+ 
 									"reserved: " + reserved + "datatype: " + datatype);
@@ -120,7 +124,7 @@ public class APIServer extends Thread{
 						case 503:
 							P2PLogger.log(Level.INFO, "Received GOSSIP_VALIDATION: "+numOfBytesRead);
 							short messageId = buffer.getShort();
-							reserved = buffer.get();
+							reserved = buffer.getShort();
 							
 							P2PLogger.log(Level.INFO, "Type: " + type + "\nSize: " + size+
 									 "messageid: " + messageId + "reserved: " + reserved);

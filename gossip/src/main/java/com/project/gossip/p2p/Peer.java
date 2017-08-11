@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
+import com.project.gossip.api.APIServer;
 import com.project.gossip.logger.P2PLogger;
 
 public class Peer {
@@ -90,7 +91,13 @@ public class Peer {
     String id = conf.getString("id");
     P2PLogger logger = new P2PLogger("peer", "peer" + id + ".log", "INFO");
     
+    String [] apiServerConf = conf.getString("api_address").split(":");
+    
+    APIServer server = new APIServer(apiServerConf[0], 
+    		Integer.parseInt(apiServerConf[1]));
+    
     Peer driver = new Peer(conf, cli);
+    server.start();
     driver.start();
   }
 }

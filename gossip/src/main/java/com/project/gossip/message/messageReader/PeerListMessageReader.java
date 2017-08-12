@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.nio.ByteBuffer;
 
 
-public class PeerListMessageReader{
+public class PeerListMessageReader {
 
-  public PeerListMessageReader(){
+  public PeerListMessageReader() {
 
   }
 
-  public static PeerList read(ByteBuffer header, ByteBuffer payload){
+  public static PeerList read(ByteBuffer header, ByteBuffer payload) {
     PeerList msg = null;
 
-    try{
+    try {
       //check for buffer underflow
-      if(!header.hasRemaining() && !payload.hasRemaining()){
+      if (!header.hasRemaining() && !payload.hasRemaining()) {
         return null;
       }
 
@@ -28,13 +28,12 @@ public class PeerListMessageReader{
       short numOfPeers = payload.getShort();
       ArrayList<String> peerAddrList = new ArrayList<String>();
 
-      for(int i=0;i<numOfPeers;i++){
+      for (int i = 0; i < numOfPeers; i++) {
         peerAddrList.add(Helpers.convertIntIpToString(payload.getInt()));
       }
 
       msg = new PeerList(size, type, numOfPeers, peerAddrList);
-    }
-    catch(Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
       return null;
     }

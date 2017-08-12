@@ -4,29 +4,29 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public final class Helpers{
+public final class Helpers {
 
-  public Helpers(){
+  public Helpers() {
 
   }
 
   public static byte[] shortToBytes(short s) {
-    return new byte[]{(byte)(s & 0x00FF),(byte)((s & 0xFF00)>>8)};
+    return new byte[]{(byte) (s & 0x00FF), (byte) ((s & 0xFF00) >> 8)};
   }
 
-  public static String convertIntIpToString(int ip) throws Exception{
+  public static String convertIntIpToString(int ip) throws Exception {
     //return InetAddress.getByName(Integer.toString(ip)).getHostAddress();
     String strIp =
-            String.format("%d.%d.%d.%d.",
-                    (ip & 0xff),
-                    (ip >> 8 & 0xff),
-                    (ip >> 16 & 0xff),
-                    (ip >> 24 & 0xff));
+        String.format("%d.%d.%d.%d.",
+            (ip & 0xff),
+            (ip >> 8 & 0xff),
+            (ip >> 16 & 0xff),
+            (ip >> 24 & 0xff));
 
-    String [] arr = strIp.split("\\.");
+    String[] arr = strIp.split("\\.");
     StringBuilder sb = new StringBuilder();
-    int i=0;
-    for(i=arr.length-1;i>0;i--){
+    int i = 0;
+    for (i = arr.length - 1; i > 0; i--) {
       sb.append(arr[i]);
       sb.append(".");
     }

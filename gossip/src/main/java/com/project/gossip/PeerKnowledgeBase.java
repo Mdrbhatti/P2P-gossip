@@ -1,4 +1,4 @@
-package com.project.gossip.p2p;
+package com.project.gossip;
 
 import com.project.gossip.logger.P2PLogger;
 

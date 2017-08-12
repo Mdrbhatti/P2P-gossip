@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.PeerKnowledgeBase;
 import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
@@ -196,6 +197,9 @@ public class ProtocolServer extends Thread{
                   }
                   System.out.println("-------------------------------");
                 }
+              }
+              if(MessageType.GOSSIP_ANNOUNCE.getVal() == type){
+
               }
 
             }

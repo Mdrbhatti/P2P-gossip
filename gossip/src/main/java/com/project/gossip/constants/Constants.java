@@ -1,10 +1,10 @@
 package com.project.gossip.constants;
 
-public final class Constants{
-  
+public final class Constants {
+
   //64KB Max Message Size
   public static final int MAX_MESSAGE_LENGTH = 64 * 1024;
-  
+
   //Minimum Message size in gossip protocol is 4 bytes
   //Hello message is the shortest message which does not contain payload
   public static final int MIN_MESSAGE_LENGTH = 4;

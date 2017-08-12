@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.PeerKnowledgeBase;
 import com.project.gossip.message.messages.PeerList;
 
 import java.nio.ByteBuffer;

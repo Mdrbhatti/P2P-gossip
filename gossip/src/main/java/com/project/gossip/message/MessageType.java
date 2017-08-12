@@ -2,7 +2,7 @@ package com.project.gossip.message;
 
 import java.lang.IllegalArgumentException;
 
-public enum MessageType{
+public enum MessageType {
 
   // API Message Types
   GOSSIP_ANNOUNCE((short) 500),
@@ -16,21 +16,21 @@ public enum MessageType{
   GOSSIP_PEER_LIST((short) 506);
 
   private short val;
- 
-  MessageType(short val){
+
+  MessageType(short val) {
     this.val = val;
   }
 
-  public short getVal(){
+  public short getVal() {
     return this.val;
   }
 
-  public static MessageType getMessageType(short val){
-     for(MessageType type: MessageType.values()){
-       if(type.getVal() == val){
-         return type;
-       }
-     }
-     throw new IllegalArgumentException("Invalid message type "+val);
+  public static MessageType getMessageType(short val) {
+    for (MessageType type : MessageType.values()) {
+      if (type.getVal() == val) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("Invalid message type " + val);
   }
 }

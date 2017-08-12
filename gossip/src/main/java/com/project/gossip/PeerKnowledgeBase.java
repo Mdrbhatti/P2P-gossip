@@ -106,7 +106,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending to " + module);
+          P2PLogger.log(Level.INFO, "Error while sending to module");
           exp.printStackTrace();
         }
       }

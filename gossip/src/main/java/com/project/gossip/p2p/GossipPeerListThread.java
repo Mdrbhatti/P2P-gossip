@@ -6,6 +6,7 @@ import com.project.gossip.message.messages.PeerList;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
+import java.util.Map;
 
 /*
 * This thread is used by the peer to send it's list of connected peers to
@@ -23,11 +24,6 @@ public class GossipPeerListThread extends Thread {
       try {
         //wait 10 seconds
         Thread.sleep(10000);
-
-        //get list of all connected peers
-        HashMap<String, SocketChannel> connectedPeers =
-            PeerKnowledgeBase.connectedPeers;
-
 
         PeerList peerListMsg = new PeerList(PeerKnowledgeBase.getConnectedPeerIPs());
         ByteBuffer writeBuffer = peerListMsg.getByteBuffer();

@@ -22,7 +22,7 @@ public class Peer {
   private int bootStrapClientPort;
 
   private ProtocolServer protocolServer;
-  private GossipPeerList gossipPeerListThread;
+  private GossipPeerListThread gossipPeerListThread;
 
   public Peer(SubnodeConfiguration conf, ProtocolCli cli)
                                                             throws Exception{
@@ -46,7 +46,7 @@ public class Peer {
     protocolServer = new ProtocolServer(protocolServerAddr,
             protocolServerPort, bootStrapServerAddr, bootStrapServerPort);
 
-    gossipPeerListThread = new GossipPeerList(protocolServer);
+    gossipPeerListThread = new GossipPeerListThread(protocolServer);
   }
 
   private String [] serverConf(SubnodeConfiguration conf, String key){

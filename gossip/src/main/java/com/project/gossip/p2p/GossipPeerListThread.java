@@ -14,12 +14,12 @@ import java.util.concurrent.ExecutionException;
 * every other peer. Other peers will learn new peers from this information
 * and open new connections to them
 * */
-public class GossipPeerList extends Thread {
+public class GossipPeerListThread extends Thread {
 
     //hold an instance of protocol server to query list of connected peers
     private ProtocolServer protocolServer;
 
-    public GossipPeerList(ProtocolServer protocolServer){
+    public GossipPeerListThread(ProtocolServer protocolServer){
         this.protocolServer = protocolServer;
     }
 

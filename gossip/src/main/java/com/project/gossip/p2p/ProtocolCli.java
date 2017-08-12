@@ -15,29 +15,29 @@ public class ProtocolCli {
   public static int peerLocalPort = 9999;
 
   public ProtocolCli(String[] args) {
-    
+
     this.args = args;
     this.options = new Options();
 
     options.addOption(OptionBuilder.withLongOpt("help")
-            .withDescription("display help for cli")
-            .create("h"));
+        .withDescription("display help for cli")
+        .create("h"));
 
     options.addOption(OptionBuilder.withLongOpt("config")
-            .withDescription("path to configuration file")
-            .hasArg().isRequired().create("c"));
+        .withDescription("path to configuration file")
+        .hasArg().isRequired().create("c"));
 
     options.addOption(OptionBuilder.withLongOpt("section")
-            .withDescription("gossip section name in conf file")
-            .hasArg().create("s"));
+        .withDescription("gossip section name in conf file")
+        .hasArg().create("s"));
 
     options.addOption(OptionBuilder.withLongOpt("localaddr")
-            .withDescription("peer's local address")
-            .hasArg().create("l"));
+        .withDescription("peer's local address")
+        .hasArg().create("l"));
 
     options.addOption(OptionBuilder.withLongOpt("localport")
-            .withDescription("peer's local port")
-            .hasArg().create("p"));
+        .withDescription("peer's local port")
+        .hasArg().create("p"));
 
   }
 
@@ -48,27 +48,26 @@ public class ProtocolCli {
     try {
       cmd = parser.parse(options, args);
 
-      if (cmd.hasOption("h")){
+      if (cmd.hasOption("h")) {
         help();
       }
-      
+
       if (cmd.hasOption("c")) {
         configFilePath = cmd.getOptionValue("c");
       }
-      
-      if(cmd.hasOption("s")){
+
+      if (cmd.hasOption("s")) {
         gossipSectionName = cmd.getOptionValue("s");
       }
 
-      if(cmd.hasOption("l")){
+      if (cmd.hasOption("l")) {
         peerLocalAddr = cmd.getOptionValue("l");
       }
 
-      if(cmd.hasOption("p")){
+      if (cmd.hasOption("p")) {
         peerLocalPort = Integer.parseInt(cmd.getOptionValue("p"));
       }
-    } 
-    catch (ParseException e) {
+    } catch (ParseException e) {
       System.out.println("Failed to parse args");
       help();
     }

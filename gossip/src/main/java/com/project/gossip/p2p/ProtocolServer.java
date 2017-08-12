@@ -23,7 +23,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ClosedChannelException;
 import java.nio.ByteBuffer;
 
-public class ProtocolServer extends Thread{
+public class ProtocolServer extends Thread {
 
   private ServerSocketChannel serverSocket;
   private String peerAddr;
@@ -38,15 +38,15 @@ public class ProtocolServer extends Thread{
 
   //single thread is servicing all channels, so no danger of conccurent access
   //same buffer used for reading and writing
-  private ByteBuffer payloadBuffer = ByteBuffer.allocateDirect (BUFFER_SIZE);
+  private ByteBuffer payloadBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 
   //header buffer
   private ByteBuffer headerBuffer = ByteBuffer.allocate(Constants.HEADER_LENGTH);
 
   public ProtocolServer(String protocolServerAddr, int protocolServerPort,
-      String bootStrapServerAddr, int bootStrapServerPort)
-          throws
-          Exception{
+                        String bootStrapServerAddr, int bootStrapServerPort)
+      throws
+      Exception {
 
     this.serverSocket = new TcpServer(protocolServerPort, protocolServerAddr)
         .getServerSocket();
@@ -60,14 +60,13 @@ public class ProtocolServer extends Thread{
     acceptAndReadSelector = Selector.open();
 
     // Register server socket with the Selector for accept connection events
-    serverSocket.register(acceptAndReadSelector, SelectionKey.OP_ACCEPT );
+    serverSocket.register(acceptAndReadSelector, SelectionKey.OP_ACCEPT);
   }
 
-  public void run(){
-    try{
+  public void run() {
+    try {
       acceptAndReadEventLoop();
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
     }
   }
@@ -77,13 +76,12 @@ public class ProtocolServer extends Thread{
      which is responsible for returning all connections which are ready
      for data to be written to them */
 
-  public void acceptAndReadEventLoop(){
+  public void acceptAndReadEventLoop() {
 
     List<String> peerList = null;
     try {
       peerList = bootStrapClient.getPeersList();
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       System.out.println("BOOTSTRAPPING FAILED: Unable to get peers list from" +
           " bootstrap");
       System.out.println("Exiting...");
@@ -93,36 +91,35 @@ public class ProtocolServer extends Thread{
 
     for (String peer : peerList) {
       if (!peer.equals(peerAddr) && !PeerKnowledgeBase.connectedPeers
-              .containsKey(peer)) {
+          .containsKey(peer)) {
         System.out.println("Trying to connect to: " + peer);
         SocketChannel channel = initiateConnection(peer);
       }
     }
 
-    while(true){
+    while (true) {
       //wait for events
       int numOfChannelsReady = 0;
-      try{
+      try {
         numOfChannelsReady = acceptAndReadSelector.select(5000);
-        System.out.println("Size of Connected Peers: "+PeerKnowledgeBase
-                .connectedPeers.size());
-      }
-      catch(IOException e){
+        System.out.println("Size of Connected Peers: " + PeerKnowledgeBase
+            .connectedPeers.size());
+      } catch (IOException e) {
         e.printStackTrace();
       }
 
-      if(numOfChannelsReady == 0){
+      if (numOfChannelsReady == 0) {
         //someother thread invoked wakeup() method of selector
         continue;
       }
 
       // Iterate over the set of selected keys
       Iterator it = acceptAndReadSelector.selectedKeys().iterator();
-      while(it.hasNext()){
+      while (it.hasNext()) {
         SelectionKey key = (SelectionKey) it.next();
 
         //new incoming connection event
-        if(key.isAcceptable()) {
+        if (key.isAcceptable()) {
           System.out.println("Accept Event Triggered");
           SocketChannel channel = acceptNewConnection(key);
 
@@ -132,14 +129,14 @@ public class ProtocolServer extends Thread{
           }
         }
         //event fired when some channel sends data
-        if(key.isReadable()){
+        if (key.isReadable()) {
           SocketChannel socketChannel = (SocketChannel) key.channel();
 
           //clear the buffers
           headerBuffer.clear();
           payloadBuffer.clear();
 
-          int bytesRead=0;
+          int bytesRead = 0;
           try {
             //read the header
             bytesRead = socketChannel.read(headerBuffer);
@@ -148,8 +145,7 @@ public class ProtocolServer extends Thread{
             if (bytesRead == -1) {
               key.cancel();
               closeConnection(socketChannel);
-            }
-            else{
+            } else {
 
               //change the header buffer to read mode
               headerBuffer.flip();
@@ -162,43 +158,43 @@ public class ProtocolServer extends Thread{
               headerBuffer.rewind();
 
               //read the payload
-              while(bytesRead != size){
+              while (bytesRead != size) {
                 bytesRead += socketChannel.read(payloadBuffer);
               }
 
               //change the payload buffer to read mode
               payloadBuffer.flip();
 
-              if(MessageType.GOSSIP_HELLO.getVal() == type){
+              if (MessageType.GOSSIP_HELLO.getVal() == type) {
 
                 HelloMessage helloMessage = HelloMessageReader.read
                     (headerBuffer, payloadBuffer);
-                if(helloMessage!=null){
+                if (helloMessage != null) {
                   System.out.println("-------------------------------");
                   System.out.println("Hello Message Received from: " +
-                      ""+helloMessage.getSourceIp());
+                      "" + helloMessage.getSourceIp());
                   PeerKnowledgeBase.connectedPeers.put(helloMessage
-                                  .getSourceIp(),
-                          socketChannel);
+                          .getSourceIp(),
+                      socketChannel);
                   System.out.println("Successfully Connected to: "
-                      +helloMessage.getSourceIp());
+                      + helloMessage.getSourceIp());
                   System.out.println("-------------------------------");
                 }
               }
-              if(MessageType.GOSSIP_PEER_LIST.getVal() == type){
+              if (MessageType.GOSSIP_PEER_LIST.getVal() == type) {
 
                 PeerList peerListMsg = PeerListMessageReader.read
                     (headerBuffer, payloadBuffer);
-                if(peerListMsg!=null){
+                if (peerListMsg != null) {
                   System.out.println("-------------------------------");
                   System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
-                  for(String ip: peerListMsg.getPeerAddrList()){
+                  for (String ip : peerListMsg.getPeerAddrList()) {
                     System.out.println(ip);
                   }
                   System.out.println("-------------------------------");
                 }
               }
-              if(MessageType.GOSSIP_ANNOUNCE.getVal() == type){
+              if (MessageType.GOSSIP_ANNOUNCE.getVal() == type) {
 
               }
 
@@ -210,88 +206,83 @@ public class ProtocolServer extends Thread{
           }
         }
         // Remove key from selected set; it's been handled
-        it.remove( );
+        it.remove();
       }
     }
   }
 
 
-
-  public void sendHelloMessage(SocketChannel channel, String sourceAddr){
+  public void sendHelloMessage(SocketChannel channel, String sourceAddr) {
     try {
       HelloMessage helloMsg = new HelloMessage(sourceAddr);
       ByteBuffer writeBuffer = helloMsg.getByteBuffer();
       writeBuffer.flip();
       channel.write(writeBuffer);
       writeBuffer.clear();
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
     }
   }
 
-  private void registerChannelWithSelectors(SocketChannel channel){
+  private void registerChannelWithSelectors(SocketChannel channel) {
 
     //OP_READ : notify when there is data waiting to be read in channel
     try {
       channel.register(acceptAndReadSelector, SelectionKey.OP_READ);
-    }
-    catch (ClosedChannelException exp){
+    } catch (ClosedChannelException exp) {
       exp.printStackTrace();
     }
     //OP_WRITE: notify when channel is ready for writing data
     //channel.register(writeSelector, SelectionKey.OP_WRITE);
   }
 
-  private SocketChannel acceptNewConnection(SelectionKey key){
+  private SocketChannel acceptNewConnection(SelectionKey key) {
 
     //get the channel
     ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
 
     //accept conenction
     SocketChannel socketChannel = null;
-    try{
+    try {
       socketChannel = serverChannel.accept();
-      if(socketChannel == null){
+      if (socketChannel == null) {
         //could happen because serverChannel is non-blocking
         return null;
       }
       socketChannel.configureBlocking(false);
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
     }
     return socketChannel;
   }
 
-  public SocketChannel initiateConnection(String addr){
+  public SocketChannel initiateConnection(String addr) {
     SocketChannel socketChannel = null;
     try {
       socketChannel = SocketChannel.open();
       socketChannel.configureBlocking(false);
       socketChannel.connect(new InetSocketAddress(addr, 6001));
-      while (!socketChannel.finishConnect()) {}
-    }
-    catch (IOException exp){
+      while (!socketChannel.finishConnect()) {
+      }
+    } catch (IOException exp) {
       exp.printStackTrace();
-      System.out.println("Unable to connect to peer "+addr);
+      System.out.println("Unable to connect to peer " + addr);
     }
 
-    if(socketChannel != null && socketChannel.isConnected()){
+    if (socketChannel != null && socketChannel.isConnected()) {
       registerChannelWithSelectors(socketChannel);
       sendHelloMessage(socketChannel, peerAddr);
     }
     return socketChannel;
   }
 
-  public void closeConnection(SocketChannel channel){
-    try{
+  public void closeConnection(SocketChannel channel) {
+    try {
       String address = getPeerIpFromSocket(channel);
-      System.out.println("Connection to peer "+ address +" closed");
+      System.out.println("Connection to peer " + address + " closed");
       PeerKnowledgeBase.connectedPeers.remove(address);
       channel.close();
-    }
-    catch (IOException exp){
+    } catch (IOException exp) {
       exp.printStackTrace();
     }
   }
@@ -304,7 +295,7 @@ public class ProtocolServer extends Thread{
    * on same machine using different IPs from private address space, when
    * getAddress function is called on socket, it always returns 127.0.0.1
    * eventhough the IP was 127.0.0.2. */
-  public String getPeerIpFromSocket(SocketChannel channel){
+  public String getPeerIpFromSocket(SocketChannel channel) {
     for (String key : PeerKnowledgeBase.connectedPeers.keySet()) {
       if (PeerKnowledgeBase.connectedPeers.get(key).equals(channel)) {
         return key;

@@ -14,30 +14,29 @@ import java.util.HashMap;
 * */
 public class GossipPeerListThread extends Thread {
 
-    //hold an instance of protocol server to query list of connected peers
-    private ProtocolServer protocolServer;
+  //hold an instance of protocol server to query list of connected peers
+  private ProtocolServer protocolServer;
 
 
-    public void run(){
-      while(true){
-          try{
-              //wait 10 seconds
-              Thread.sleep(10000);
+  public void run() {
+    while (true) {
+      try {
+        //wait 10 seconds
+        Thread.sleep(10000);
 
-              //get list of all connected peers
-              HashMap<String, SocketChannel> connectedPeers =
-                      PeerKnowledgeBase.connectedPeers;
+        //get list of all connected peers
+        HashMap<String, SocketChannel> connectedPeers =
+            PeerKnowledgeBase.connectedPeers;
 
 
-              PeerList peerListMsg = new PeerList(PeerKnowledgeBase.getConnectedPeerIPs());
-              ByteBuffer writeBuffer = peerListMsg.getByteBuffer();
-              writeBuffer.flip();
-              PeerKnowledgeBase.sendBufferToAllPeers(writeBuffer, "Peer List" +
-                      " Message");
-          }
-          catch (Exception exp){
-              exp.printStackTrace();
-          }
+        PeerList peerListMsg = new PeerList(PeerKnowledgeBase.getConnectedPeerIPs());
+        ByteBuffer writeBuffer = peerListMsg.getByteBuffer();
+        writeBuffer.flip();
+        PeerKnowledgeBase.sendBufferToAllPeers(writeBuffer, "Peer List" +
+            " Message");
+      } catch (Exception exp) {
+        exp.printStackTrace();
       }
     }
+  }
 }

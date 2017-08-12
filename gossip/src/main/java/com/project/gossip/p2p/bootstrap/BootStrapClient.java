@@ -16,7 +16,7 @@ import java.util.logging.Level;
 /*
 Implement bootstrap client here
 */
-public class BootStrapClient{
+public class BootStrapClient {
   private DatagramChannel channel;
   private InetSocketAddress bootStrapServerAddr;
   private ByteBuffer payloadBuffer;
@@ -25,8 +25,8 @@ public class BootStrapClient{
   private String clientAddr;
 
   public BootStrapClient(String serverAddr, int serverPort, String clientAddr)
-          throws
-          Exception{
+      throws
+      Exception {
 
     this.clientAddr = clientAddr;
     this.clientPort = clientPort;
@@ -38,10 +38,10 @@ public class BootStrapClient{
     this.channel.connect(this.bootStrapServerAddr);
     //TODO: Fix hardcoding
     this.headerBuffer = ByteBuffer.allocate(Constants.HEADER_LENGTH);
-    this.payloadBuffer = ByteBuffer.allocate(64*128);
+    this.payloadBuffer = ByteBuffer.allocate(64 * 128);
   }
 
-  public List<String> getPeersList() throws Exception{
+  public List<String> getPeersList() throws Exception {
 
     //send hello packet
     HelloMessage helloMsg = new HelloMessage(clientAddr);
@@ -51,7 +51,7 @@ public class BootStrapClient{
     channel.write(writeBuffer);
     writeBuffer.clear();
 
-    ByteBuffer [] arr = {headerBuffer, payloadBuffer};
+    ByteBuffer[] arr = {headerBuffer, payloadBuffer};
     //read bytes from channel into header and payload buffer
     channel.read(arr);
 
@@ -61,13 +61,12 @@ public class BootStrapClient{
     headerBuffer.clear();
     payloadBuffer.clear();
 
-    if(peerListMsg == null){
+    if (peerListMsg == null) {
       P2PLogger.log(Level.INFO, "Invalid Peer List Message Recvd");
       return null;
-    }
-    else{
+    } else {
       P2PLogger.log(Level.INFO, "got peer list");
-      return peerListMsg.getPeerAddrList();   
+      return peerListMsg.getPeerAddrList();
     }
   }
 

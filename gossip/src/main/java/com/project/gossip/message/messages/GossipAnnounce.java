@@ -5,17 +5,17 @@ import com.project.gossip.message.Message;
 import java.lang.Exception;
 import java.nio.ByteBuffer;
 
-public class GossipAnnounce extends Message{
+public class GossipAnnounce extends Message {
 
   private byte ttl;
   private byte reserved;
   private short datatype;
-  private byte [] data;
+  private byte[] data;
 
   public GossipAnnounce(short size, short type, byte ttl, byte reserved,
-                        short datatype, byte [] data) throws Exception{
+                        short datatype, byte[] data) throws Exception {
     this.ttl = ttl;
-    this.reserved = reserved; 
+    this.reserved = reserved;
     this.datatype = datatype;
     this.data = data;
 
@@ -23,23 +23,23 @@ public class GossipAnnounce extends Message{
     super.setType(type);
   }
 
-  public byte getTtl(){
+  public byte getTtl() {
     return this.ttl;
   }
- 
-  public byte getReserved(){
+
+  public byte getReserved() {
     return this.reserved;
   }
 
-  public short getDatatype(){
+  public short getDatatype() {
     return this.datatype;
   }
 
-  public byte [] getData(){
+  public byte[] getData() {
     return this.data;
   }
 
-  public ByteBuffer getByteBuffer() throws Exception{
+  public ByteBuffer getByteBuffer() throws Exception {
     short size = super.getSize();
     ByteBuffer buffer = ByteBuffer.allocate(size);
     buffer.putShort(size);

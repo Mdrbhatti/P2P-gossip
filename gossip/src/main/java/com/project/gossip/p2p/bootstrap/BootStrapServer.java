@@ -21,24 +21,24 @@ import java.util.ArrayList;
 
 import java.lang.Integer;
 
-public class BootStrapServer{
+public class BootStrapServer {
   private DatagramChannel serverSocket;
   private ByteBuffer readBuffer;
   private HashSet<String> peers = new HashSet<String>();
 
-  public BootStrapServer(int port, String addr) throws Exception{
+  public BootStrapServer(int port, String addr) throws Exception {
     this.serverSocket = new UdpServer(port, addr).getServerSocket();
     //TODO: remove hardcoding
-    this.readBuffer = ByteBuffer.allocate(64*128);
+    this.readBuffer = ByteBuffer.allocate(64 * 128);
   }
 
-  public void listen() throws Exception{
-    while(true){
+  public void listen() throws Exception {
+    while (true) {
       InetSocketAddress clientAddress = (InetSocketAddress)
-                                        this.serverSocket.receive(readBuffer);
+          this.serverSocket.receive(readBuffer);
 
       //could happen
-      if(clientAddress == null){
+      if (clientAddress == null) {
         P2PLogger.log(Level.INFO, "Address was null");
         continue;
       }
@@ -48,10 +48,9 @@ public class BootStrapServer{
       HelloMessage msg = HelloMessageReader.read(readBuffer);
       readBuffer.clear();
 
-      if( msg == null){
+      if (msg == null) {
         P2PLogger.log(Level.INFO, "Invalid Hello Message Recv");
-      }
-      else{
+      } else {
         String address = clientAddress.getAddress().getHostAddress();
         peers.add(address);
 
@@ -65,18 +64,18 @@ public class BootStrapServer{
         writeBuffer.flip();
         int bytesSent = serverSocket.send(writeBuffer, clientAddress);
         writeBuffer.clear();
-      }     
+      }
     }
   }
 
-  public static void main(String [] args) throws Exception{
+  public static void main(String[] args) throws Exception {
     ProtocolCli cli = new ProtocolCli(args);
     cli.parse();
     HierarchicalINIConfiguration confFile = new HierarchicalINIConfiguration(
-                                                cli.configFilePath);
+        cli.configFilePath);
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
-    String [] bootStrapServerConf = conf.getString("bootstrapper").split(":");
-    
+    String[] bootStrapServerConf = conf.getString("bootstrapper").split(":");
+
     // Initialize logger
     P2PLogger logger = new P2PLogger("bootstrap", "bootstrap.log", "INFO");
     BootStrapServer server = new BootStrapServer(

@@ -53,6 +53,10 @@ public class GossipAnnounce extends Message {
     return this.data;
   }
 
+  public void decrementTTL(){
+    this.ttl--;
+  }
+
   public ByteBuffer getByteBuffer() throws Exception {
     short size = super.getSize();
     ByteBuffer buffer = ByteBuffer.allocate(size);

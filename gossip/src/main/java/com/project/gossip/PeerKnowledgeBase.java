@@ -4,18 +4,12 @@ import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.message.messages.GossipNotification;
-import com.project.gossip.CacheItem;
+import com.project.gossip.message.messages.GossipValidation;
+
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 public class PeerKnowledgeBase {
@@ -27,10 +21,9 @@ public class PeerKnowledgeBase {
   public static Map<Short, ArrayList<SocketChannel>> validDatatypes =
       Collections.synchronizedMap(new HashMap<Short, ArrayList<SocketChannel>>());
 
-  //  public static Map<Short, ArrayList<GossipAnnounce>> waitingForValidation =
-  //      Collections.synchronizedMap(new HashMap<Short, ArrayList<GossipAnnounce>>());
-
-  public static List<CacheItem> dataItems = Collections.synchronizedList(new LinkedList<CacheItem>());
+  //cache holds all gossip announce messages waiting for validation from modules
+  //TODO maintain max size of cache
+  public static List<CacheItem> cache = Collections.synchronizedList(new LinkedList<CacheItem>());
 
   public static short messageId = 0;
 
@@ -68,7 +61,7 @@ public class PeerKnowledgeBase {
     try {
       writeBuffer = gossipNotificationMsg.getByteBuffer();
     } catch (Exception e) {
-      System.out.println("Couldn't construct Gossip Notification Message");
+      System.out.println("Unable to get byte buffer from gossip notification message");
       e.printStackTrace();
       return;
     }
@@ -76,12 +69,64 @@ public class PeerKnowledgeBase {
       writeBuffer.flip();
       sendBufferToAllSubscribedModules(writeBuffer, "Gossip Notification", datatype );
       // Add cached item (used by protocol server after gossip validation)
+      //decrement TTL
       addDataItem(new CacheItem(gossipAnnounceMsg, messageId));
     }
   }
 
+  public static void sendGossipAnnounce(GossipValidation gossipValidation){
+    short messageId = gossipValidation.getMessageId();
+    synchronized (cache){
+      Iterator it = cache.iterator();
+      while (it.hasNext()){
+        CacheItem item = (CacheItem) it.next();
+        if(item.getMessageId() == messageId){
+          GossipAnnounce gossipAnnounceMsg = item.getGossipAnnounceMsg();
+          byte ttl = gossipAnnounceMsg.getTtl();
+          ByteBuffer writeBuffer = null;
+          if(ttl == 0){
+            //send
+            try{
+              writeBuffer = gossipAnnounceMsg.getByteBuffer();
+            }
+            catch (Exception exp){
+              System.out.println("Unable to get Byte Buffer for Gossip Announce Msg");
+              exp.printStackTrace();
+              return;
+            }
+            if(writeBuffer != null){
+              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
+            }
+          }
+          else if(ttl > 1){
+            gossipAnnounceMsg.decrementTTL();
+            try{
+              writeBuffer = gossipAnnounceMsg.getByteBuffer();
+            }
+            catch (Exception exp){
+              System.out.println("Unable to get Byte Buffer for Gossip Announce Msg");
+              exp.printStackTrace();
+              return;
+            }
+            if(writeBuffer != null){
+              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
+            }
+          }
+          else{
+            //discard
+            System.out.println("Last Hop, dont announce msg");
+          }
+          //remove cache item
+          it.remove();
+          return;
+        }
+      }
+    }
+  }
+
+  // TODO add check if cache size exceeds limit
   public static void addDataItem(CacheItem item){
-    dataItems.add(item);
+    cache.add(item);
   }
 
   public static void addValidDatatype(short datatype, SocketChannel channel) {
@@ -106,7 +151,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending to module");
+          P2PLogger.log(Level.INFO, "Error while sending "+msg+" to module");
           exp.printStackTrace();
         }
       }
@@ -124,7 +169,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending to " + peer);
+          P2PLogger.log(Level.INFO, "Error while sending "+msg+" to " + peer);
           exp.printStackTrace();
         }
       }

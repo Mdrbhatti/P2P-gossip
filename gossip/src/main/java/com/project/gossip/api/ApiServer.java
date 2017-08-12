@@ -1,11 +1,13 @@
 package com.project.gossip.api;
 
 import com.project.gossip.message.messageReader.GossipNotifyReader;
+import com.project.gossip.message.messageReader.GossipValidationReader;
 import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.message.messages.GossipNotify;
 import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.PeerKnowledgeBase;
+import com.project.gossip.message.messages.GossipValidation;
 import com.project.gossip.server.TcpServer;
 import com.project.gossip.message.messageReader.GossipAnnounceReader;
 
@@ -166,6 +168,19 @@ public class ApiServer extends Thread {
                   System.out.println("-------------------------------");
                 }
               }
+              if (MessageType.GOSSIP_VALIDATION.getVal() == type){
+                GossipValidation gossipValidation =
+                    GossipValidationReader.read(headerBuffer, payloadBuffer);
+                if (gossipValidation != null){
+                  System.out.println("-------------------------------");
+                  System.out.println("Gossip Validation Msg Received ");
+                  if (gossipValidation.isValid()){
+                    PeerKnowledgeBase.sendGossipAnnounce(gossipValidation);
+                  }
+                  System.out.println("-------------------------------");
+                }
+
+              }
             }
           } catch (IOException e) {
             // conn closed by remote disgracefully
@@ -212,7 +227,7 @@ public class ApiServer extends Thread {
     return socketChannel;
   }
 
-
+  //TODO: cancel notify
   public void closeConnection(SocketChannel channel) {
     try {
       System.out.println("Connection to module closed");

@@ -10,4 +10,12 @@ public class CacheItem {
     gossipAnnounceMsg = msg;
     messageId = msgId;
   }
+
+  public GossipAnnounce getGossipAnnounceMsg() {
+    return gossipAnnounceMsg;
+  }
+
+  public short getMessageId() {
+    return messageId;
+  }
 }

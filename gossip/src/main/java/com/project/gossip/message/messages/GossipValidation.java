@@ -4,16 +4,17 @@ import com.project.gossip.message.Message;
 
 
 import java.lang.Exception;
+import java.nio.ByteBuffer;
 
 public class GossipValidation extends Message {
 
   private short messageId;
-  private boolean valid;
+  private short reserved;
 
   public GossipValidation(short size, short type, short messageId,
-                          boolean valid) throws Exception {
+                          short reserved) throws Exception {
     this.messageId = messageId;
-    this.valid = valid;
+    this.reserved = reserved;
 
     super.setSize(size);
     super.setType(type);
@@ -23,8 +24,25 @@ public class GossipValidation extends Message {
     return this.messageId;
   }
 
-  public boolean getValid() {
-    return this.valid;
+  public short getReserved() {
+    return reserved;
   }
 
+  public boolean isValid(){
+    if ((reserved & 0x1) == 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public ByteBuffer getByteBuffer() throws Exception {
+    short size = super.getSize();
+    ByteBuffer buffer = ByteBuffer.allocate(size);
+    buffer.putShort(size);
+    buffer.putShort(super.getType().getVal());
+    buffer.putShort(messageId);
+    buffer.putShort(reserved);
+    return buffer;
+  }
 }

@@ -128,10 +128,6 @@ public class APIServer extends Thread{
 							short messageId = buffer.getShort();
 							res[0] = buffer.get();
 							res[1] = buffer.get();
-//							Short.
-//							byte shortie = (byte)((reserved >> 8) & 0xff);
-//							System.out.println("shortie: " + shortie);
-//							BigInteger.valueOf(reserved).testBit(15);
 							for (int i = 0; i < 16; i++) {
 								int j=0;
 								if(i>7){
@@ -139,6 +135,7 @@ public class APIServer extends Thread{
 								}
 								System.out.print(BigInteger.valueOf(res[j]).testBit(i%8) ? "1": "0");
 							}
+							// some chutyap with network byte order
 							P2PLogger.log(Level.INFO, "Type: " + type + "\nSize: " + size+
 									 "messageid: " + messageId + "reserved: " +BigInteger.valueOf(res[1]).testBit(7));
 							break;

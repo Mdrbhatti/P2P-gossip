@@ -36,7 +36,7 @@ public class BootStrapServer{
 
   public void listen() throws Exception{
     while(true){
-      InetSocketAddress clientAddress = (InetSocketAddress) 
+      InetSocketAddress clientAddress = (InetSocketAddress)
                                         this.serverSocket.receive(readBuffer);
 
       //could happen
@@ -46,6 +46,7 @@ public class BootStrapServer{
       }
 
       //validates a hello message
+      readBuffer.flip();
       HelloMessage msg = HelloMessageReader.read(readBuffer);
       readBuffer.clear();
 

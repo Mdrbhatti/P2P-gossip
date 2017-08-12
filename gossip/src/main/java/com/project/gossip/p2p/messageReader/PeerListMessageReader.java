@@ -1,5 +1,7 @@
 package com.project.gossip.p2p.messageReader;
 
+import com.project.gossip.constants.Constants;
+import com.project.gossip.constants.Helpers;
 import com.project.gossip.p2p.messages.PeerList;
 
 import java.lang.Exception;
@@ -15,29 +17,25 @@ public class PeerListMessageReader{
 
   }
 
-  public static PeerList read(ByteBuffer buffer){
+  public static PeerList read(ByteBuffer header, ByteBuffer payload){
     PeerList msg = null;
 
     try{
       //check for buffer underflow
-      if(!buffer.hasRemaining()){
+      if(!header.hasRemaining() && !payload.hasRemaining()){
         return null;
       }
 
-      buffer.flip();
-
-      short size = buffer.getShort();
-      short type = buffer.getShort();
-      short numOfPeers = buffer.getShort();
+      short size = header.getShort();
+      short type = header.getShort();
+      short numOfPeers = payload.getShort();
       ArrayList<String> peerAddrList = new ArrayList<String>();
 
       for(int i=0;i<numOfPeers;i++){
-        peerAddrList.add(convertIntIpToString(buffer.getInt()));
+        peerAddrList.add(Helpers.convertIntIpToString(payload.getInt()));
       }
 
       msg = new PeerList(size, type, numOfPeers, peerAddrList);
-
-      buffer.clear();
     }
     catch(Exception exp){
       exp.printStackTrace();
@@ -45,25 +43,6 @@ public class PeerListMessageReader{
     }
     return msg;
   }
- 
-  private static String convertIntIpToString(int ip) throws Exception{
-    //return InetAddress.getByName(Integer.toString(ip)).getHostAddress();
-    String strIp =
-            String.format("%d.%d.%d.%d.",
-                    (ip & 0xff),
-                    (ip >> 8 & 0xff),
-                    (ip >> 16 & 0xff),
-                    (ip >> 24 & 0xff));
 
-    String [] arr = strIp.split("\\.");
-    StringBuilder sb = new StringBuilder();
-    int i=0;
-    for(i=arr.length-1;i>0;i--){
-      sb.append(arr[i]);
-      sb.append(".");
-    }
-    sb.append(arr[i]);
-    return sb.toString();
-  }
 }
 

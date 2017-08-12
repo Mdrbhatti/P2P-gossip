@@ -1,6 +1,8 @@
 package com.project.gossip.message.messages;
 
 
+import java.nio.ByteBuffer;
+
 import com.project.gossip.message.Message;
 
 public class GossipNotification extends Message {
@@ -29,5 +31,16 @@ public class GossipNotification extends Message {
 
   public byte[] getData() {
     return this.data;
+  }
+  
+  public ByteBuffer getByteBuffer() throws Exception {
+    short size = super.getSize();
+    ByteBuffer buffer = ByteBuffer.allocate(size);
+    buffer.putShort(size);
+    buffer.putShort(super.getType().getVal());
+    buffer.putShort(messageId);
+    buffer.putShort(datatype);
+    buffer.put(data);
+    return buffer;
   }
 }

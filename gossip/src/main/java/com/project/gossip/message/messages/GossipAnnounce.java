@@ -26,6 +26,20 @@ public class GossipAnnounce extends Message {
   public byte getTtl() {
     return this.ttl;
   }
+  
+  // if ttl == 0, send it without doing anything
+  // If ttl == 1, drop message
+  // If ttl > 1, decrement ttl and send message
+  public Boolean shouldGossipPropogate(){
+    if (this.ttl == 0){
+      return true;
+    }
+    else if (this.ttl > 1) {
+      this.ttl--;
+      return true;
+    }
+    return false;
+  }
 
   public byte getReserved() {
     return this.reserved;

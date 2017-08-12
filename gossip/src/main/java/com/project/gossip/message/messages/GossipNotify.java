@@ -3,6 +3,7 @@ package com.project.gossip.message.messages;
 import com.project.gossip.message.Message;
 
 import java.lang.Exception;
+import java.nio.ByteBuffer;
 
 public class GossipNotify extends Message {
 
@@ -24,5 +25,15 @@ public class GossipNotify extends Message {
 
   public short getDatatype() {
     return this.datatype;
+  }
+  
+  public ByteBuffer getByteBuffer() throws Exception {
+    short size = super.getSize();
+    ByteBuffer buffer = ByteBuffer.allocate(size);
+    buffer.putShort(size);
+    buffer.putShort(super.getType().getVal());
+    buffer.putShort(reserved);
+    buffer.putShort(datatype);
+    return buffer;
   }
 }

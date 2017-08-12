@@ -4,7 +4,7 @@ import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.message.messages.GossipNotification;
-
+import com.project.gossip.CacheItem;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -12,6 +12,9 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -24,8 +27,10 @@ public class PeerKnowledgeBase {
   public static Map<Short, ArrayList<SocketChannel>> validDatatypes =
       Collections.synchronizedMap(new HashMap<Short, ArrayList<SocketChannel>>());
 
-  private static Map<Short, ArrayList<SocketChannel>> waitingForValidation =
-      Collections.synchronizedMap(new HashMap<Short, ArrayList<SocketChannel>>());
+  //  public static Map<Short, ArrayList<GossipAnnounce>> waitingForValidation =
+  //      Collections.synchronizedMap(new HashMap<Short, ArrayList<GossipAnnounce>>());
+
+  public static List<CacheItem> dataItems = Collections.synchronizedList(new LinkedList<CacheItem>());
 
   public static short messageId = 0;
 
@@ -38,7 +43,7 @@ public class PeerKnowledgeBase {
   }
 
   public static void sendNotificationToModules(short datatype,
-                                               GossipAnnounce gossipAnnounceMsg){
+      GossipAnnounce gossipAnnounceMsg){
     if(messageId == Short.MAX_VALUE){
       messageId = 0;
     }
@@ -47,7 +52,7 @@ public class PeerKnowledgeBase {
       gossipNotificationMsg = new GossipNotification(
           gossipAnnounceMsg.getSize(), MessageType.GOSSIP_NOTIFICATION.getVal(),
           messageId, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
-          messageId++;
+      messageId++;
 
     }
     catch (Exception exp){
@@ -55,9 +60,30 @@ public class PeerKnowledgeBase {
       exp.printStackTrace();
       return;
     }
-
-    ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
+    
+    // Send notification to all registered modules
+    // Wait for a single validation
+    // Store message ID + gossip announce message
+    ByteBuffer writeBuffer = null;
+    try {
+      writeBuffer = gossipNotificationMsg.getByteBuffer();
+    } catch (Exception e) {
+      System.out.println("Couldn't construct Gossip Notification Message");
+      e.printStackTrace();
+      return;
+    }
+    if(writeBuffer!=null){
+      writeBuffer.flip();
+      sendBufferToAllSubscribedModules(writeBuffer, "Gossip Notification", datatype );
+      // Add cached item (used by protocol server after gossip validation)
+      addDataItem(new CacheItem(gossipAnnounceMsg, messageId));
+    }
   }
+
+  public static void addDataItem(CacheItem item){
+    dataItems.add(item);
+  }
+
   public static void addValidDatatype(short datatype, SocketChannel channel) {
     if (!validDatatypes.containsKey(datatype)) {
       ArrayList<SocketChannel> arr = new ArrayList<SocketChannel>();
@@ -65,6 +91,25 @@ public class PeerKnowledgeBase {
       validDatatypes.put(datatype, arr);
     } else {
       validDatatypes.get(datatype).add(channel);
+    }
+  }
+  
+  // TODO: TEST THIS?
+  public static void sendBufferToAllSubscribedModules(ByteBuffer buffer, String msg, Short datatype) {
+    ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
+    for (SocketChannel channel: modules) {
+      P2PLogger.log(Level.INFO, "Sending " + msg + " to module");
+      buffer.rewind();
+      if (channel.isConnected()) {
+        try {
+          while (buffer.hasRemaining()) {
+            channel.write(buffer);
+          }
+        } catch (IOException exp) {
+          P2PLogger.log(Level.INFO, "Error while sending to " + module);
+          exp.printStackTrace();
+        }
+      }
     }
   }
 

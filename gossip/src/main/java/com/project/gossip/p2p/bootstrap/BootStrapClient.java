@@ -6,10 +6,13 @@ import com.project.gossip.p2p.messageReader.PeerListMessageReader;
 import com.project.gossip.message.MessageType;
 
 import com.project.gossip.constants.Constants;
+import com.project.gossip.logger.P2PLogger;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.logging.Level;
 
 /*
 Implement bootstrap client here
@@ -60,11 +63,11 @@ public class BootStrapClient{
     payloadBuffer.clear();
 
     if(peerListMsg == null){
-      System.out.println("Invalid Peer List Message Recvd");
+      P2PLogger.log(Level.INFO, "Invalid Peer List Message Recvd");
       return null;
     }
     else{
-      System.out.println("got peer list");
+      P2PLogger.log(Level.INFO, "got peer list");
       return peerListMsg.getPeerAddrList();   
     }
   }

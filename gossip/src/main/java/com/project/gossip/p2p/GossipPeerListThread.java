@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.p2p.messages.PeerList;
 
 import java.nio.ByteBuffer;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 
 /*
 * This thread is used by the peer to send it's list of connected peers to
@@ -43,7 +45,7 @@ public class GossipPeerListThread extends Thread {
 
               //send list of connected peers to each neighbouring peer
               for(String neighborIp: peers){
-                  System.out.println("Sending peer list to: "+neighborIp);
+                P2PLogger.log(Level.INFO, "Sending peer list to: "+neighborIp);
                   writeBuffer.flip();
                   SocketChannel channel = connectedPeers.get(neighborIp);
                   if(channel.isConnected()) {

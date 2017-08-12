@@ -55,17 +55,17 @@ public class ProtocolServer extends Thread{
   private ByteBuffer headerBuffer = ByteBuffer.allocate(Constants.HEADER_LENGTH);
 
   public ProtocolServer(String protocolServerAddr, int protocolServerPort,
-                        String bootStrapServerAddr, int bootStrapServerPort)
+      String bootStrapServerAddr, int bootStrapServerPort)
           throws
           Exception{
 
     this.serverSocket = new TcpServer(protocolServerPort, protocolServerAddr)
-            .getServerSocket();
+        .getServerSocket();
 
     this.peerAddr = protocolServerAddr;
 
     this.bootStrapClient = new BootStrapClient(bootStrapServerAddr,
-            bootStrapServerPort, protocolServerAddr);
+        bootStrapServerPort, protocolServerAddr);
 
     this.connectedPeers = new HashMap<String, SocketChannel>();
 
@@ -101,7 +101,7 @@ public class ProtocolServer extends Thread{
     }
     catch (Exception exp){
       System.out.println("BOOTSTRAPPING FAILED: Unable to get peers list from" +
-              " bootstrap");
+          " bootstrap");
       System.out.println("Exiting...");
       System.exit(-1);
       exp.printStackTrace();
@@ -140,10 +140,10 @@ public class ProtocolServer extends Thread{
           System.out.println("Accept Event Triggered");
           SocketChannel channel = acceptNewConnection(key);
           InetSocketAddress remoteAddr = (InetSocketAddress) channel.socket()
-                  .getRemoteSocketAddress();
+              .getRemoteSocketAddress();
           if (channel != null && channel.isConnected()) {
-              registerChannelWithSelectors(channel);
-              sendHelloMessage(channel, peerAddr);
+            registerChannelWithSelectors(channel);
+            sendHelloMessage(channel, peerAddr);
           }
         }
         //event fired when some channel sends data
@@ -184,21 +184,21 @@ public class ProtocolServer extends Thread{
               if(MessageType.GOSSIP_HELLO.getVal() == type){
 
                 HelloMessage helloMessage = HelloMessageReader.read
-                        (headerBuffer, payloadBuffer);
+                    (headerBuffer, payloadBuffer);
                 if(helloMessage!=null){
                   System.out.println("-------------------------------");
                   System.out.println("Hello Message Received from: " +
-                          ""+helloMessage.getSourceIp());
+                      ""+helloMessage.getSourceIp());
                   connectedPeers.put(helloMessage.getSourceIp(), socketChannel);
                   System.out.println("Successfully Connected to: "
-                          +helloMessage.getSourceIp());
+                      +helloMessage.getSourceIp());
                   System.out.println("-------------------------------");
                 }
               }
               if(MessageType.GOSSIP_PEER_LIST.getVal() == type){
 
                 PeerList peerListMsg = PeerListMessageReader.read
-                        (headerBuffer, payloadBuffer);
+                    (headerBuffer, payloadBuffer);
                 if(peerListMsg!=null){
                   System.out.println("-------------------------------");
                   System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
@@ -259,7 +259,7 @@ public class ProtocolServer extends Thread{
 
     //get the channel
     ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
- 
+
     //accept conenction
     SocketChannel socketChannel = null;
     try{
@@ -313,19 +313,19 @@ public class ProtocolServer extends Thread{
   }
 
   /*
-  * Hashmap of connectedPeers contains <ip,socket> entries
-  * when peers close their connection we can use the getAddress function of
-  * socket, but during testing and dev phase we are running multiple peers
-  * on same machine using different IPs from private address space, when
-  * getAddress function is called on socket, it always returns 127.0.0.1
-  * eventhough the IP was 127.0.0.2. */
+   * Hashmap of connectedPeers contains <ip,socket> entries
+   * when peers close their connection we can use the getAddress function of
+   * socket, but during testing and dev phase we are running multiple peers
+   * on same machine using different IPs from private address space, when
+   * getAddress function is called on socket, it always returns 127.0.0.1
+   * eventhough the IP was 127.0.0.2. */
   public String getPeerIpFromSocket(SocketChannel channel){
-      for (String key : connectedPeers.keySet()) {
-        if (connectedPeers.get(key).equals(channel)) {
-          return key;
-        }
+    for (String key : connectedPeers.keySet()) {
+      if (connectedPeers.get(key).equals(channel)) {
+        return key;
       }
-      return null;
+    }
+    return null;
   }
 }
 

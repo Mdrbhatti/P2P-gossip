@@ -1,9 +1,8 @@
 package com.project.gossip.p2p.bootstrap;
 
-import com.project.gossip.p2p.messages.HelloMessage;
-import com.project.gossip.p2p.messages.PeerList;
-import com.project.gossip.p2p.messageReader.PeerListMessageReader;
-import com.project.gossip.message.MessageType;
+import com.project.gossip.message.messages.HelloMessage;
+import com.project.gossip.message.messages.PeerList;
+import com.project.gossip.message.messageReader.PeerListMessageReader;
 
 import com.project.gossip.constants.Constants;
 import com.project.gossip.logger.P2PLogger;

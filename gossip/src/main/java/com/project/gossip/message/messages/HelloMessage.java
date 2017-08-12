@@ -1,5 +1,6 @@
-package com.project.gossip.p2p.messages;
+package com.project.gossip.message.messages;
 
+import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.constants.*;
 
@@ -9,7 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-public class HelloMessage extends P2pMessage{
+public class HelloMessage extends Message{
 
 
   String sourceIp = "";

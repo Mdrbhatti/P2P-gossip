@@ -1,7 +1,9 @@
-package com.project.gossip.p2p.messages;
+package com.project.gossip.message.messages;
 
 
-public class GossipNotification extends P2pMessage{
+import com.project.gossip.message.Message;
+
+public class GossipNotification extends Message{
 
   private short messageId;
   private short datatype;

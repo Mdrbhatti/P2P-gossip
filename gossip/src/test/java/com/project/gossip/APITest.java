@@ -6,19 +6,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Level;
 
-import com.project.gossip.api.messages.GossipAnnounce;
-import com.project.gossip.api.messages.GossipNotify;
-import com.project.gossip.api.messages.GossipValidation;
+import com.project.gossip.message.messages.GossipNotify;
 import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.MessageType;
-import com.project.gossip.p2p.bootstrap.BootStrapClient;
-import com.project.gossip.server.TcpServer;
 
 public class APITest {
 	private SocketChannel socketChannel;

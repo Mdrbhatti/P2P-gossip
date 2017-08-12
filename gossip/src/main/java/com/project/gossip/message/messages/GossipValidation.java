@@ -1,8 +1,11 @@
-package com.project.gossip.api.messages;
+package com.project.gossip.message.messages;
+
+import com.project.gossip.message.Message;
+
 
 import java.lang.Exception;
 
-public class GossipValidation extends ApiMessage{
+public class GossipValidation extends Message{
 
   private short messageId;
   private boolean valid;

@@ -1,13 +1,10 @@
-package com.project.gossip.p2p.messageReader;
+package com.project.gossip.message.messageReader;
 
-import com.project.gossip.constants.Constants;
 import com.project.gossip.constants.Helpers;
-import com.project.gossip.p2p.messages.PeerList;
+import com.project.gossip.message.messages.PeerList;
 
 import java.lang.Exception;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 

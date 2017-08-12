@@ -1,24 +1,18 @@
 package com.project.gossip.p2p;
 
 import com.project.gossip.constants.Constants;
-import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
-import com.project.gossip.p2p.messageReader.HelloMessageReader;
-import com.project.gossip.p2p.messageReader.PeerListMessageReader;
-import com.project.gossip.p2p.messages.HelloMessage;
-import com.project.gossip.p2p.messages.PeerList;
+import com.project.gossip.message.messageReader.HelloMessageReader;
+import com.project.gossip.message.messageReader.PeerListMessageReader;
+import com.project.gossip.message.messages.HelloMessage;
+import com.project.gossip.message.messages.PeerList;
 import com.project.gossip.server.TcpServer;
 
-import javax.swing.table.AbstractTableModel;
-import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
 import java.io.IOException;
 
 import java.nio.channels.ServerSocketChannel;
@@ -35,14 +29,8 @@ public class ProtocolServer extends Thread{
 
   private BootStrapClient bootStrapClient;
 
-  // key is ip address
-  private HashMap<String, SocketChannel> connectedPeers;
-
   //selector for new connections and read data events
   public Selector acceptAndReadSelector;
-
-  //selector used for getting connections which are ready for writing
-  private Selector writeSelector;
 
   //256KB buffer
   private final int BUFFER_SIZE = 256 * 1024;
@@ -67,13 +55,8 @@ public class ProtocolServer extends Thread{
     this.bootStrapClient = new BootStrapClient(bootStrapServerAddr,
         bootStrapServerPort, protocolServerAddr);
 
-    this.connectedPeers = new HashMap<String, SocketChannel>();
-
     //create read and accept selector for event loop
     acceptAndReadSelector = Selector.open();
-
-    //create selector for write events
-    writeSelector = Selector.open();
 
     // Register server socket with the Selector for accept connection events
     serverSocket.register(acceptAndReadSelector, SelectionKey.OP_ACCEPT );
@@ -108,7 +91,8 @@ public class ProtocolServer extends Thread{
     }
 
     for (String peer : peerList) {
-      if (!peer.equals(peerAddr) && !connectedPeers.containsKey(peer)) {
+      if (!peer.equals(peerAddr) && !PeerKnowledgeBase.connectedPeers
+              .containsKey(peer)) {
         System.out.println("Trying to connect to: " + peer);
         SocketChannel channel = initiateConnection(peer);
       }
@@ -119,7 +103,8 @@ public class ProtocolServer extends Thread{
       int numOfChannelsReady = 0;
       try{
         numOfChannelsReady = acceptAndReadSelector.select(5000);
-        System.out.println("Size of Connected Peers: "+connectedPeers.size());
+        System.out.println("Size of Connected Peers: "+PeerKnowledgeBase
+                .connectedPeers.size());
       }
       catch(IOException e){
         e.printStackTrace();
@@ -139,8 +124,7 @@ public class ProtocolServer extends Thread{
         if(key.isAcceptable()) {
           System.out.println("Accept Event Triggered");
           SocketChannel channel = acceptNewConnection(key);
-          InetSocketAddress remoteAddr = (InetSocketAddress) channel.socket()
-              .getRemoteSocketAddress();
+
           if (channel != null && channel.isConnected()) {
             registerChannelWithSelectors(channel);
             sendHelloMessage(channel, peerAddr);
@@ -149,7 +133,10 @@ public class ProtocolServer extends Thread{
         //event fired when some channel sends data
         if(key.isReadable()){
           SocketChannel socketChannel = (SocketChannel) key.channel();
-          this.payloadBuffer.clear();
+
+          //clear the buffers
+          headerBuffer.clear();
+          payloadBuffer.clear();
 
           int bytesRead=0;
           try {
@@ -189,7 +176,9 @@ public class ProtocolServer extends Thread{
                   System.out.println("-------------------------------");
                   System.out.println("Hello Message Received from: " +
                       ""+helloMessage.getSourceIp());
-                  connectedPeers.put(helloMessage.getSourceIp(), socketChannel);
+                  PeerKnowledgeBase.connectedPeers.put(helloMessage
+                                  .getSourceIp(),
+                          socketChannel);
                   System.out.println("Successfully Connected to: "
                       +helloMessage.getSourceIp());
                   System.out.println("-------------------------------");
@@ -210,11 +199,6 @@ public class ProtocolServer extends Thread{
               }
 
             }
-
-            //clear the buffers
-            headerBuffer.clear();
-            payloadBuffer.clear();
-
           } catch (IOException e) {
             // conn closed by remote disgracefully
             key.cancel();
@@ -300,7 +284,7 @@ public class ProtocolServer extends Thread{
     try{
       String address = getPeerIpFromSocket(channel);
       System.out.println("Connection to peer "+ address +" closed");
-      connectedPeers.remove(address);
+      PeerKnowledgeBase.connectedPeers.remove(address);
       channel.close();
     }
     catch (IOException exp){
@@ -308,9 +292,6 @@ public class ProtocolServer extends Thread{
     }
   }
 
-  public HashMap<String,SocketChannel> getConnectedPeers(){
-    return connectedPeers;
-  }
 
   /*
    * Hashmap of connectedPeers contains <ip,socket> entries
@@ -320,8 +301,8 @@ public class ProtocolServer extends Thread{
    * getAddress function is called on socket, it always returns 127.0.0.1
    * eventhough the IP was 127.0.0.2. */
   public String getPeerIpFromSocket(SocketChannel channel){
-    for (String key : connectedPeers.keySet()) {
-      if (connectedPeers.get(key).equals(channel)) {
+    for (String key : PeerKnowledgeBase.connectedPeers.keySet()) {
+      if (PeerKnowledgeBase.connectedPeers.get(key).equals(channel)) {
         return key;
       }
     }

@@ -1,7 +1,7 @@
-package com.project.gossip.p2p.messageReader;
+package com.project.gossip.message.messageReader;
 
 import com.project.gossip.constants.Helpers;
-import com.project.gossip.p2p.messages.HelloMessage;
+import com.project.gossip.message.messages.HelloMessage;
 import java.nio.ByteBuffer;
 
 public class HelloMessageReader{

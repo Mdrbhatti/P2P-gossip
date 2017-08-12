@@ -4,17 +4,15 @@ import com.project.gossip.server.UdpServer;
 import com.project.gossip.logger.P2PLogger;
 
 import com.project.gossip.p2p.ProtocolCli;
-import com.project.gossip.p2p.messageReader.HelloMessageReader;
-import com.project.gossip.p2p.messages.HelloMessage;
-import com.project.gossip.p2p.messages.PeerList;
+import com.project.gossip.message.messageReader.HelloMessageReader;
+import com.project.gossip.message.messages.HelloMessage;
+import com.project.gossip.message.messages.PeerList;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;

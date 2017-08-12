@@ -1,13 +1,15 @@
-package com.project.gossip.api.messages;
+package com.project.gossip.message.messages;
+
+import com.project.gossip.message.Message;
 
 import java.lang.Exception;
 
-public class GossipNotify extends ApiMessage{
+public class GossipNotify extends Message{
 
-  private byte reserved;
+  private short reserved;
   private short datatype;
 
-  public GossipNotify(short size, short type, byte reserved, 
+  public GossipNotify(short size, short type, short reserved,
                       short datatype) throws Exception{
     this.reserved = reserved; 
     this.datatype = datatype;
@@ -16,7 +18,7 @@ public class GossipNotify extends ApiMessage{
     super.setType(type);
   }
 
-  public byte getReserved(){
+  public short getReserved(){
     return this.reserved;
   }
 

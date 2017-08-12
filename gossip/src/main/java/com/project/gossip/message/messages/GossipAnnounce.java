@@ -1,8 +1,11 @@
-package com.project.gossip.api.messages;
+package com.project.gossip.message.messages;
+
+import com.project.gossip.message.Message;
 
 import java.lang.Exception;
+import java.nio.ByteBuffer;
 
-public class GossipAnnounce extends ApiMessage{
+public class GossipAnnounce extends Message{
 
   private byte ttl;
   private byte reserved;
@@ -34,5 +37,17 @@ public class GossipAnnounce extends ApiMessage{
 
   public byte [] getData(){
     return this.data;
+  }
+
+  public ByteBuffer getByteBuffer() throws Exception{
+    short size = super.getSize();
+    ByteBuffer buffer = ByteBuffer.allocate(size);
+    buffer.putShort(size);
+    buffer.putShort(super.getType().getVal());
+    buffer.put(ttl);
+    buffer.put(reserved);
+    buffer.putShort(datatype);
+    buffer.put(data);
+    return buffer;
   }
 }

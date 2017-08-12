@@ -1,5 +1,6 @@
-package com.project.gossip.p2p.messages;
+package com.project.gossip.message.messages;
 
+import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.constants.*;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
-public class PeerList extends P2pMessage{
+public class PeerList extends Message{
 
   private short numOfPeers;
   private ArrayList<String> peerAddrList;

@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
-import com.project.gossip.api.APIServer;
+import com.project.gossip.api.ApiServer;
 import com.project.gossip.logger.P2PLogger;
 
 public class Peer {
@@ -51,7 +51,7 @@ public class Peer {
     protocolServer = new ProtocolServer(protocolServerAddr, protocolServerPort, bootStrapServerAddr,
         bootStrapServerPort);
 
-    gossipPeerListThread = new GossipPeerListThread(protocolServer);
+    gossipPeerListThread = new GossipPeerListThread();
   }
 
   private String[] serverConf(SubnodeConfiguration conf, String key) {
@@ -93,7 +93,7 @@ public class Peer {
     
     String [] apiServerConf = conf.getString("api_address").split(":");
     
-    APIServer server = new APIServer(apiServerConf[0], 
+    ApiServer server = new ApiServer(apiServerConf[0],
     		Integer.parseInt(apiServerConf[1]));
     
     Peer driver = new Peer(conf, cli);

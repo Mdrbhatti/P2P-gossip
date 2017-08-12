@@ -3,6 +3,8 @@ package com.project.gossip.p2p;
 import com.project.gossip.PeerKnowledgeBase;
 import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
+import com.project.gossip.message.messageReader.GossipAnnounceReader;
+import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.p2p.bootstrap.BootStrapClient;
 import com.project.gossip.message.messageReader.HelloMessageReader;
 import com.project.gossip.message.messageReader.PeerListMessageReader;
@@ -195,7 +197,23 @@ public class ProtocolServer extends Thread {
                 }
               }
               if (MessageType.GOSSIP_ANNOUNCE.getVal() == type) {
-
+                GossipAnnounce gossipAnnounceMsg =
+                    GossipAnnounceReader.read
+                        (headerBuffer, payloadBuffer);
+                if (gossipAnnounceMsg != null) {
+                  System.out.println("-------------------------------");
+                  System.out.println("Gossip " +
+                      "Announce Msg Received ");
+                  short datatype = gossipAnnounceMsg.getDatatype();
+                  if(PeerKnowledgeBase.containsDatatype(datatype)){
+                    PeerKnowledgeBase.sendNotificationToModules(datatype, gossipAnnounceMsg);
+                  }
+                  else{
+                    System.out.println("No Module has subscribed for Datatype "+
+                        gossipAnnounceMsg.getDatatype()+" , dropping message");
+                  }
+                  System.out.println("-------------------------------");
+                }
               }
 
             }

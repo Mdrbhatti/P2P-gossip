@@ -175,7 +175,11 @@ public class ApiServer extends Thread {
                   System.out.println("-------------------------------");
                   System.out.println("Gossip Validation Msg Received ");
                   if (gossipValidation.isValid()){
+                    System.out.println("Gossip Validation Msg Valid");
                     PeerKnowledgeBase.sendGossipAnnounce(gossipValidation);
+                  }
+                  else{
+                    System.out.println("Gossip Validation Msg Invalid");
                   }
                   System.out.println("-------------------------------");
                 }

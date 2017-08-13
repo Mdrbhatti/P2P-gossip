@@ -1,4 +1,4 @@
-package com.project.gossip.p2p;
+package com.project.gossip;
 
 import java.lang.Exception;
 
@@ -11,8 +11,7 @@ public class ProtocolCli {
 
   public static String configFilePath;
   public static String gossipSectionName = "gossip";
-  public static String peerLocalAddr = "127.0.0.1";
-  public static int peerLocalPort = 9999;
+  public static boolean isBootStrapServer = false;
 
   public ProtocolCli(String[] args) {
 
@@ -31,14 +30,9 @@ public class ProtocolCli {
         .withDescription("gossip section name in conf file")
         .hasArg().create("s"));
 
-    options.addOption(OptionBuilder.withLongOpt("localaddr")
-        .withDescription("peer's local address")
-        .hasArg().create("l"));
-
-    options.addOption(OptionBuilder.withLongOpt("localport")
-        .withDescription("peer's local port")
-        .hasArg().create("p"));
-
+    options.addOption(OptionBuilder.withLongOpt("bootstrap")
+        .withDescription("start as bootstrap server")
+        .create("b"));
   }
 
   public void parse() {
@@ -60,13 +54,10 @@ public class ProtocolCli {
         gossipSectionName = cmd.getOptionValue("s");
       }
 
-      if (cmd.hasOption("l")) {
-        peerLocalAddr = cmd.getOptionValue("l");
+      if(cmd.hasOption("b")){
+        isBootStrapServer = true;
       }
 
-      if (cmd.hasOption("p")) {
-        peerLocalPort = Integer.parseInt(cmd.getOptionValue("p"));
-      }
     } catch (ParseException e) {
       System.out.println("Failed to parse args");
       help();

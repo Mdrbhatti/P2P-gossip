@@ -84,30 +84,18 @@ public class PeerKnowledgeBase {
           GossipAnnounce gossipAnnounceMsg = item.getGossipAnnounceMsg();
           byte ttl = gossipAnnounceMsg.getTtl();
           ByteBuffer writeBuffer = null;
+
           if(ttl == 0){
             //send
-            try{
-              writeBuffer = gossipAnnounceMsg.getByteBuffer();
-            }
-            catch (Exception exp){
-              System.out.println("Unable to get Byte Buffer for Gossip Announce Msg");
-              exp.printStackTrace();
-              return;
-            }
+            writeBuffer = gossipAnnounceMsg.getByteBuffer();
             if(writeBuffer != null){
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
             }
           }
           else if(ttl > 1){
             gossipAnnounceMsg.decrementTTL();
-            try{
-              writeBuffer = gossipAnnounceMsg.getByteBuffer();
-            }
-            catch (Exception exp){
-              System.out.println("Unable to get Byte Buffer for Gossip Announce Msg");
-              exp.printStackTrace();
-              return;
-            }
+
+            writeBuffer = gossipAnnounceMsg.getByteBuffer();
             if(writeBuffer != null){
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
             }

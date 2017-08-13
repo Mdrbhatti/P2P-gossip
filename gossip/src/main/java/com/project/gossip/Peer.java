@@ -5,8 +5,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.project.gossip.p2p.GossipPeerListThread;
-import com.project.gossip.p2p.ProtocolCli;
 import com.project.gossip.p2p.ProtocolServer;
+import com.project.gossip.p2p.bootstrap.BootStrapServer;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
@@ -17,6 +17,7 @@ public class Peer {
 
   private ProtocolServer protocolServer;
   private ApiServer apiServer;
+  private BootStrapServer bootStrapServer;
 
   // Number of peers the current peer has to exchange information with
   private int degree;
@@ -30,34 +31,41 @@ public class Peer {
   private String bootStrapServerAddr;
   private int bootStrapServerPort;
 
+  private int cacheSize;
+
   private GossipPeerListThread gossipPeerListThread;
   private static Logger logger;
 
   public Peer(SubnodeConfiguration conf, ProtocolCli cli) throws Exception {
 
-    this.degree = Integer.parseInt(conf.getString("max_connections"));
-
-    String[] p2pServerConf = serverConf(conf, "listen_address");
-    this.protocolServerAddr = p2pServerConf[0];
-    this.protocolServerPort = Integer.parseInt(p2pServerConf[1]);
-
     String[] bootStrapServerConf = serverConf(conf, "bootstrapper");
     this.bootStrapServerAddr = bootStrapServerConf[0];
     this.bootStrapServerPort = Integer.parseInt(bootStrapServerConf[1]);
 
-    String[] apiServerConf = serverConf(conf, "api_address");
-    this.apiServerAddr = apiServerConf[0];
-    this.apiServerPort = Integer.parseInt(apiServerConf[1]);
+    if(!cli.isBootStrapServer){
+      this.degree = Integer.parseInt(conf.getString("max_connections"));
 
-    // print set configurations
-    printConf();
+      String[] p2pServerConf = serverConf(conf, "listen_address");
+      this.protocolServerAddr = p2pServerConf[0];
+      this.protocolServerPort = Integer.parseInt(p2pServerConf[1]);
 
-    protocolServer = new ProtocolServer(protocolServerAddr, protocolServerPort, bootStrapServerAddr,
-        bootStrapServerPort);
+      String[] apiServerConf = serverConf(conf, "api_address");
+      this.apiServerAddr = apiServerConf[0];
+      this.apiServerPort = Integer.parseInt(apiServerConf[1]);
 
-    apiServer = new ApiServer(apiServerAddr, apiServerPort);
+      this.cacheSize = Integer.parseInt(conf.getString("cache_size"));
 
-    gossipPeerListThread = new GossipPeerListThread();
+      protocolServer = new ProtocolServer(protocolServerAddr, protocolServerPort, bootStrapServerAddr,
+          bootStrapServerPort);
+
+      apiServer = new ApiServer(apiServerAddr, apiServerPort);
+
+      gossipPeerListThread = new GossipPeerListThread();
+    }
+    else{
+      this.bootStrapServer = new BootStrapServer(this.bootStrapServerPort,
+          this.bootStrapServerAddr);
+    }
   }
 
   private String[] serverConf(SubnodeConfiguration conf, String key) {
@@ -75,10 +83,15 @@ public class Peer {
     P2PLogger.log(Level.INFO, "Bootstrap Server Port: " + bootStrapServerPort);
   }
 
-  public void start() {
-    this.protocolServer.start();
-    this.gossipPeerListThread.start();
-    //this.apiServer.start();
+  public void start(boolean isBootStrapServer) {
+    if(!isBootStrapServer){
+      this.protocolServer.start();
+      this.gossipPeerListThread.start();
+      //this.apiServer.start();
+    }
+    else{
+      this.bootStrapServer.listen();
+    }
   }
 
   public static void main(String[] args) throws Exception {
@@ -94,6 +107,6 @@ public class Peer {
     P2PLogger logger = new P2PLogger("peer", "peer" + id + ".log", "INFO");
 
     Peer driver = new Peer(conf, cli);
-    driver.start();
+    driver.start(cli.isBootStrapServer);
   }
 }

@@ -57,15 +57,21 @@ public class GossipAnnounce extends Message {
     this.ttl--;
   }
 
-  public ByteBuffer getByteBuffer() throws Exception {
-    short size = super.getSize();
-    ByteBuffer buffer = ByteBuffer.allocate(size);
-    buffer.putShort(size);
-    buffer.putShort(super.getType().getVal());
-    buffer.put(ttl);
-    buffer.put(reserved);
-    buffer.putShort(datatype);
-    buffer.put(data);
-    return buffer;
+  public ByteBuffer getByteBuffer(){
+    try{
+      short size = super.getSize();
+      ByteBuffer buffer = ByteBuffer.allocate(size);
+      buffer.putShort(size);
+      buffer.putShort(super.getType().getVal());
+      buffer.put(ttl);
+      buffer.put(reserved);
+      buffer.putShort(datatype);
+      buffer.put(data);
+      return buffer;
+    }
+    catch (Exception exp){
+      System.out.println("Unable to create gossip announce bytebuffer");
+      return null;
+    }
   }
 }

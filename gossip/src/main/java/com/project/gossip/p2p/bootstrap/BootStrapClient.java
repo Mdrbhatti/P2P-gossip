@@ -41,33 +41,37 @@ public class BootStrapClient {
     this.payloadBuffer = ByteBuffer.allocate(64 * 128);
   }
 
-  public List<String> getPeersList() throws Exception {
+  public List<String> getPeersList(){
 
-    //send hello packet
-    HelloMessage helloMsg = new HelloMessage(clientAddr);
+    try{
+      //send hello packet
+      HelloMessage helloMsg = new HelloMessage(clientAddr);
 
-    ByteBuffer writeBuffer = helloMsg.getByteBuffer();
-    writeBuffer.flip();
-    channel.write(writeBuffer);
-    writeBuffer.clear();
+      ByteBuffer writeBuffer = helloMsg.getByteBuffer();
+      writeBuffer.flip();
+      channel.write(writeBuffer);
+      writeBuffer.clear();
 
-    ByteBuffer[] arr = {headerBuffer, payloadBuffer};
-    //read bytes from channel into header and payload buffer
-    channel.read(arr);
+      ByteBuffer[] arr = {headerBuffer, payloadBuffer};
+      //read bytes from channel into header and payload buffer
+      channel.read(arr);
 
-    headerBuffer.flip();
-    payloadBuffer.flip();
-    PeerList peerListMsg = PeerListMessageReader.read(headerBuffer, payloadBuffer);
-    headerBuffer.clear();
-    payloadBuffer.clear();
+      headerBuffer.flip();
+      payloadBuffer.flip();
+      PeerList peerListMsg = PeerListMessageReader.read(headerBuffer, payloadBuffer);
+      headerBuffer.clear();
+      payloadBuffer.clear();
 
-    if (peerListMsg == null) {
-      P2PLogger.log(Level.INFO, "Invalid Peer List Message Recvd");
-      return null;
-    } else {
-      P2PLogger.log(Level.INFO, "got peer list");
+      if (peerListMsg == null) {
+        P2PLogger.log(Level.INFO, "Invalid Peer List Message Recvd");
+        return null;
+      }
       return peerListMsg.getPeerAddrList();
     }
+    catch (Exception exp){
+      System.out.println("Unable to get peer list from bootstrap server");
+      exp.printStackTrace();
+      return null;
+    }
   }
-
 }

@@ -13,6 +13,11 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class PeerKnowledgeBase {
+
+  //< Peer IP, Array of connected peer IPs>
+  public static Map<String, ArrayList<String>> knownPeers =
+      Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
+
   // key is ip address
   public static Map<String, SocketChannel> connectedPeers =
       Collections.synchronizedMap(new HashMap<String, SocketChannel>());
@@ -34,76 +39,65 @@ public class PeerKnowledgeBase {
     return new ArrayList<String>(connectedPeers.keySet());
   }
 
-  public static Boolean containsDatatype(short datatype){
+  public static Boolean containsDatatype(short datatype) {
     return validDatatypes.containsKey(datatype);
   }
 
   public static void sendNotificationToModules(short datatype,
-      GossipAnnounce gossipAnnounceMsg){
-    if(messageId == Short.MAX_VALUE){
+                                               GossipAnnounce gossipAnnounceMsg) {
+    if (messageId == Short.MAX_VALUE) {
       messageId = 0;
     }
     GossipNotification gossipNotificationMsg = null;
-    try{
+    try {
       gossipNotificationMsg = new GossipNotification(
           gossipAnnounceMsg.getSize(), MessageType.GOSSIP_NOTIFICATION.getVal(),
           messageId, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
       messageId++;
 
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       System.out.println("Unable to convert gossip announce msg to gossip notification");
       exp.printStackTrace();
       return;
     }
-    
+
     // Send notification to all registered modules
     // Wait for a single validation
     // Store message ID + gossip announce message
-    ByteBuffer writeBuffer = null;
-    try {
-      writeBuffer = gossipNotificationMsg.getByteBuffer();
-    } catch (Exception e) {
-      System.out.println("Unable to get byte buffer from gossip notification message");
-      e.printStackTrace();
-      return;
-    }
-    if(writeBuffer!=null){
+    ByteBuffer writeBuffer = gossipNotificationMsg.getByteBuffer();
+
+    if (writeBuffer != null) {
       writeBuffer.flip();
-      sendBufferToAllSubscribedModules(writeBuffer, "Gossip Notification", datatype );
-      // Add cached item (used by protocol server after gossip validation)
-      //decrement TTL
+      sendBufferToAllSubscribedModules(writeBuffer, "Gossip Notification", datatype);
       addDataItem(new CacheItem(gossipAnnounceMsg, messageId));
     }
   }
 
-  public static void sendGossipAnnounce(GossipValidation gossipValidation){
+  public static void sendGossipAnnounce(GossipValidation gossipValidation) {
     short messageId = gossipValidation.getMessageId();
-    synchronized (cache){
+    synchronized (cache) {
       Iterator it = cache.iterator();
-      while (it.hasNext()){
+      while (it.hasNext()) {
         CacheItem item = (CacheItem) it.next();
-        if(item.getMessageId() == messageId){
+        if (item.getMessageId() == messageId) {
           GossipAnnounce gossipAnnounceMsg = item.getGossipAnnounceMsg();
           byte ttl = gossipAnnounceMsg.getTtl();
           ByteBuffer writeBuffer = null;
 
-          if(ttl == 0){
+          if (ttl == 0) {
             //send
             writeBuffer = gossipAnnounceMsg.getByteBuffer();
-            if(writeBuffer != null){
+            if (writeBuffer != null) {
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
             }
-          }
-          else if(ttl > 1){
+          } else if (ttl > 1) {
             gossipAnnounceMsg.decrementTTL();
 
             writeBuffer = gossipAnnounceMsg.getByteBuffer();
-            if(writeBuffer != null){
+            if (writeBuffer != null) {
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg");
             }
-          }
-          else{
+          } else {
             //discard
             System.out.println("Last Hop, dont announce msg");
           }
@@ -115,14 +109,14 @@ public class PeerKnowledgeBase {
     }
   }
 
-  public static void removeCacheItem(short messageId){
+  public static void removeCacheItem(short messageId) {
     cache.remove(messageId);
   }
 
   // TODO add check if cache size exceeds limit
-  public static void addDataItem(CacheItem item){
+  public static void addDataItem(CacheItem item) {
     //remove oldest cacheitem to make space for latest items
-    if(cache.size() == maxCacheSize){
+    if (cache.size() == maxCacheSize) {
       cache.remove(0);
     }
     //adds items at the tail of linked list
@@ -138,11 +132,11 @@ public class PeerKnowledgeBase {
       validDatatypes.get(datatype).add(channel);
     }
   }
-  
+
   // TODO: TEST THIS?
   public static void sendBufferToAllSubscribedModules(ByteBuffer buffer, String msg, Short datatype) {
     ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
-    for (SocketChannel channel: modules) {
+    for (SocketChannel channel : modules) {
       P2PLogger.log(Level.INFO, "Sending " + msg + " to module");
       buffer.rewind();
       if (channel.isConnected()) {
@@ -151,7 +145,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending "+msg+" to module");
+          P2PLogger.log(Level.INFO, "Error while sending " + msg + " to module");
           exp.printStackTrace();
         }
       }
@@ -169,7 +163,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending "+msg+" to " + peer);
+          P2PLogger.log(Level.INFO, "Error while sending " + msg + " to " + peer);
           exp.printStackTrace();
         }
       }

@@ -1,5 +1,6 @@
 package com.project.gossip.p2p;
 
+import com.project.gossip.Peer;
 import com.project.gossip.PeerKnowledgeBase;
 import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
@@ -28,7 +29,12 @@ import java.nio.ByteBuffer;
 public class ProtocolServer extends Thread {
 
   private ServerSocketChannel serverSocket;
+
   private String peerAddr;
+
+  private int protocolServerPort;
+
+  private int degree;
 
   private BootStrapClient bootStrapClient;
 
@@ -46,14 +52,17 @@ public class ProtocolServer extends Thread {
   private ByteBuffer headerBuffer = ByteBuffer.allocate(Constants.HEADER_LENGTH);
 
   public ProtocolServer(String protocolServerAddr, int protocolServerPort,
-                        String bootStrapServerAddr, int bootStrapServerPort)
+                        String bootStrapServerAddr, int bootStrapServerPort,
+                        int degree)
       throws
       Exception {
 
     this.serverSocket = new TcpServer(protocolServerPort, protocolServerAddr)
         .getServerSocket();
 
+    this.protocolServerPort = protocolServerPort;
     this.peerAddr = protocolServerAddr;
+    this.degree = degree;
 
     this.bootStrapClient = new BootStrapClient(bootStrapServerAddr,
         bootStrapServerPort, protocolServerAddr);
@@ -66,11 +75,7 @@ public class ProtocolServer extends Thread {
   }
 
   public void run() {
-    try {
-      acceptAndReadEventLoop();
-    } catch (Exception exp) {
-      exp.printStackTrace();
-    }
+    acceptAndReadEventLoop();
   }
 
   /* This event loop handles read data events and new connections events
@@ -91,13 +96,22 @@ public class ProtocolServer extends Thread {
       exp.printStackTrace();
     }
 
+    System.out.println("-------------------------------");
+    System.out.println("Peer List Received from BootStrap Server");
+    System.out.println("Peer List size: " + peerList.size());
+    for (String peer : peerList) {
+      System.out.println(peer);
+    }
+    System.out.println();
     for (String peer : peerList) {
       if (!peer.equals(peerAddr) && !PeerKnowledgeBase.connectedPeers
           .containsKey(peer)) {
         System.out.println("Trying to connect to: " + peer);
-        SocketChannel channel = initiateConnection(peer);
+        initiateConnection(peer);
       }
     }
+    System.out.println("-------------------------------");
+
 
     while (true) {
       //wait for events
@@ -122,13 +136,20 @@ public class ProtocolServer extends Thread {
 
         //new incoming connection event
         if (key.isAcceptable()) {
-          System.out.println("Accept Event Triggered");
+          System.out.println("-------------------------------");
+          System.out.println("New Connection Request Received");
           SocketChannel channel = acceptNewConnection(key);
 
           if (channel != null && channel.isConnected()) {
-            registerChannelWithSelectors(channel);
-            sendHelloMessage(channel, peerAddr);
+            if (PeerKnowledgeBase.connectedPeers.size() == degree) {
+              //close conn
+              denyConnection(channel);
+            } else {
+              registerChannelWithSelectors(channel);
+              sendHelloMessage(channel, peerAddr);
+            }
           }
+          System.out.println("-------------------------------");
         }
         //event fired when some channel sends data
         if (key.isReadable()) {
@@ -169,18 +190,23 @@ public class ProtocolServer extends Thread {
 
               if (MessageType.GOSSIP_HELLO.getVal() == type) {
 
-                HelloMessage helloMessage = HelloMessageReader.read
-                    (headerBuffer, payloadBuffer);
-                if (helloMessage != null) {
-                  System.out.println("-------------------------------");
-                  System.out.println("Hello Message Received from: " +
-                      "" + helloMessage.getSourceIp());
-                  PeerKnowledgeBase.connectedPeers.put(helloMessage
-                          .getSourceIp(),
-                      socketChannel);
-                  System.out.println("Successfully Connected to: "
-                      + helloMessage.getSourceIp());
-                  System.out.println("-------------------------------");
+                if (PeerKnowledgeBase.connectedPeers.size() == degree) {
+                  denyConnection(socketChannel);
+                }
+                else{
+                  HelloMessage helloMessage = HelloMessageReader.read
+                      (headerBuffer, payloadBuffer);
+                  if (helloMessage != null) {
+                    System.out.println("-------------------------------");
+                    System.out.println("Hello Message Received from: " +
+                        "" + helloMessage.getSourceIp());
+                    PeerKnowledgeBase.connectedPeers.put(helloMessage
+                            .getSourceIp(),
+                        socketChannel);
+                    System.out.println("Successfully Connected to: "
+                        + helloMessage.getSourceIp());
+                    System.out.println("-------------------------------");
+                  }
                 }
               }
               if (MessageType.GOSSIP_PEER_LIST.getVal() == type) {
@@ -189,28 +215,41 @@ public class ProtocolServer extends Thread {
                     (headerBuffer, payloadBuffer);
                 if (peerListMsg != null) {
                   System.out.println("-------------------------------");
-                  System.out.println("RECV FOLLOWING PEERS FROM NEIGHBOR");
+                  String neighborAddress = getPeerIpFromSocket(socketChannel);
+                  System.out.println("PEERS LIST MESSAGE RECEIVED FROM " + neighborAddress);
                   for (String ip : peerListMsg.getPeerAddrList()) {
                     System.out.println(ip);
                   }
+                  PeerKnowledgeBase.knownPeers.put(neighborAddress, peerListMsg.getPeerAddrList());
+                  //maintain degree, open new connections if needed
+                  if (PeerKnowledgeBase.connectedPeers.size() < degree) {
+                    for (String peerIp : peerListMsg.getPeerAddrList()) {
+                      if (!PeerKnowledgeBase.connectedPeers.containsKey(peerIp) &&
+                          (!peerIp.equals(peerAddr)) &&
+                          (PeerKnowledgeBase.getConnectedPeerIPs().size() < degree)) {
+                        System.out.println("-------------------------------");
+                        System.out.println("Trying to connect to: " + peerIp + " to maintain peer degree");
+                        initiateConnection(peerIp);
+                        System.out.println("-------------------------------");
+                      }
+                    }
+                  }
+
                   System.out.println("-------------------------------");
                 }
               }
               if (MessageType.GOSSIP_ANNOUNCE.getVal() == type) {
-                GossipAnnounce gossipAnnounceMsg =
-                    GossipAnnounceReader.read
+                GossipAnnounce gossipAnnounceMsg = GossipAnnounceReader.read
                         (headerBuffer, payloadBuffer);
                 if (gossipAnnounceMsg != null) {
                   System.out.println("-------------------------------");
-                  System.out.println("Gossip " +
-                      "Announce Msg Received ");
+                  System.out.println("Gossip Announce Msg Received ");
                   short datatype = gossipAnnounceMsg.getDatatype();
-                  if(PeerKnowledgeBase.containsDatatype(datatype)){
+                  if (PeerKnowledgeBase.containsDatatype(datatype)) {
                     PeerKnowledgeBase.sendNotificationToModules(datatype, gossipAnnounceMsg);
-                  }
-                  else{
-                    System.out.println("No Module has subscribed for Datatype "+
-                        gossipAnnounceMsg.getDatatype()+" , dropping message");
+                  } else {
+                    System.out.println("No Module has subscribed for Datatype " +
+                        gossipAnnounceMsg.getDatatype() + " , dropping message");
                   }
                   System.out.println("-------------------------------");
                 }
@@ -238,6 +277,7 @@ public class ProtocolServer extends Thread {
       channel.write(writeBuffer);
       writeBuffer.clear();
     } catch (Exception exp) {
+      System.out.println("Unable to send Hello Message");
       exp.printStackTrace();
     }
   }
@@ -274,38 +314,62 @@ public class ProtocolServer extends Thread {
     return socketChannel;
   }
 
-  public SocketChannel initiateConnection(String addr) {
-    SocketChannel socketChannel = null;
-    try {
-      socketChannel = SocketChannel.open();
-      socketChannel.configureBlocking(false);
-      socketChannel.connect(new InetSocketAddress(addr, 6001));
-      while (!socketChannel.finishConnect()) {
+  public void initiateConnection(String addr) {
+    if (PeerKnowledgeBase.connectedPeers.size() < degree) {
+      SocketChannel socketChannel = null;
+      try {
+        socketChannel = SocketChannel.open();
+        socketChannel.configureBlocking(false);
+        socketChannel.connect(new InetSocketAddress(addr, protocolServerPort));
+        while (!socketChannel.finishConnect()) {
+        }
+      } catch (IOException exp) {
+        exp.printStackTrace();
+        System.out.println("Unable to connect to peer " + addr);
       }
-    } catch (IOException exp) {
-      exp.printStackTrace();
-      System.out.println("Unable to connect to peer " + addr);
-    }
 
-    if (socketChannel != null && socketChannel.isConnected()) {
-      registerChannelWithSelectors(socketChannel);
-      sendHelloMessage(socketChannel, peerAddr);
+      if (socketChannel != null && socketChannel.isConnected()) {
+        registerChannelWithSelectors(socketChannel);
+        sendHelloMessage(socketChannel, peerAddr);
+        try {
+          Thread.sleep(2000);
+        } catch (Exception exp) {
+          exp.printStackTrace();
+        }
+      }
+    } else {
+      System.out.println("Conencted Peers equals to Degree, " +
+          "discarding initiate connection request");
     }
-    return socketChannel;
   }
 
   public void closeConnection(SocketChannel channel) {
     try {
       String address = getPeerIpFromSocket(channel);
-      System.out.println("Connection to peer " + address + " closed");
-      PeerKnowledgeBase.connectedPeers.remove(address);
+      //address is null when degree is violated and connection is closed
+      //before adding any entry in connected peers list
+      if (address == null) {
+        System.out.println("Connection Request denied by peer");
+      } else {
+        System.out.println("Connection to peer " + address + " closed");
+        PeerKnowledgeBase.connectedPeers.remove(address);
+      }
       channel.close();
     } catch (IOException exp) {
       exp.printStackTrace();
     }
   }
 
-
+  public void denyConnection(SocketChannel socketChannel){
+    try {
+      System.out.println("Incoming Connection Request Denied, " +
+          "connected peers size " + PeerKnowledgeBase.connectedPeers.size() +
+          " is equal to degree " + degree);
+      socketChannel.close();
+    } catch (Exception exp) {
+      exp.printStackTrace();
+    }
+  }
   /*
    * Hashmap of connectedPeers contains <ip,socket> entries
    * when peers close their connection we can use the getAddress function of
@@ -320,6 +384,14 @@ public class ProtocolServer extends Thread {
       }
     }
     return null;
+  }
+
+  public int getDegree() {
+    return degree;
+  }
+
+  public String myIp() {
+    return peerAddr;
   }
 }
 

@@ -4,7 +4,7 @@ import java.lang.Exception;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.project.gossip.p2p.GossipPeerListThread;
+import com.project.gossip.p2p.MaintainOverlay;
 import com.project.gossip.p2p.ProtocolServer;
 import com.project.gossip.p2p.bootstrap.BootStrapServer;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -33,7 +33,7 @@ public class Peer {
 
   private int cacheSize;
 
-  private GossipPeerListThread gossipPeerListThread;
+  private MaintainOverlay maintainOverlay;
   private static Logger logger;
 
   public Peer(SubnodeConfiguration conf, ProtocolCli cli) throws Exception {
@@ -58,11 +58,13 @@ public class Peer {
       PeerKnowledgeBase.maxCacheSize = cacheSize;
 
       protocolServer = new ProtocolServer(protocolServerAddr, protocolServerPort, bootStrapServerAddr,
-          bootStrapServerPort);
+          bootStrapServerPort, degree);
 
       apiServer = new ApiServer(apiServerAddr, apiServerPort);
 
-      gossipPeerListThread = new GossipPeerListThread();
+      maintainOverlay = new MaintainOverlay();
+
+      printConf();
     }
     else{
       this.bootStrapServer = new BootStrapServer(this.bootStrapServerPort,
@@ -88,8 +90,8 @@ public class Peer {
   public void start(boolean isBootStrapServer) {
     if(!isBootStrapServer){
       this.protocolServer.start();
-      this.gossipPeerListThread.start();
-      //this.apiServer.start();
+      this.maintainOverlay.start();
+      this.apiServer.start();
     }
     else{
       this.bootStrapServer.listen();

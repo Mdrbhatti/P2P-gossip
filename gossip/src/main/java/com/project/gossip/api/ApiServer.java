@@ -51,11 +51,7 @@ public class ApiServer extends Thread {
   }
 
   public void run() {
-    try {
-      acceptAndReadEventLoop();
-    } catch (Exception exp) {
-      exp.printStackTrace();
-    }
+    acceptAndReadEventLoop();
   }
 
 	/* This event loop handles read data events and new connections events
@@ -137,21 +133,11 @@ public class ApiServer extends Thread {
                   System.out.println("-------------------------------");
                   System.out.println("Gossip " +
                       "Announce Msg Received ");
-                  ByteBuffer writeBuffer = null;
-                  try {
-                    writeBuffer = gossipAnnounceMsg
-                        .getByteBuffer();
-                  } catch (Exception exp) {
-                    System.out.println("Unable to get " +
-                        "byte buffer from gossip " +
-                        "announce object");
-                    exp.printStackTrace();
-                  }
+                  ByteBuffer writeBuffer = gossipAnnounceMsg.getByteBuffer();
                   if (writeBuffer != null) {
                     writeBuffer.flip();
                     PeerKnowledgeBase.sendBufferToAllPeers
-                        (writeBuffer, "Gossip Announce " +
-                            "Message");
+                        (writeBuffer, "Gossip Announce Message");
                   }
                   System.out.println("-------------------------------");
                 }

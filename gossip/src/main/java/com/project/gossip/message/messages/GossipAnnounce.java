@@ -13,7 +13,7 @@ public class GossipAnnounce extends Message {
   private byte[] data;
 
   public GossipAnnounce(short size, short type, byte ttl, byte reserved,
-                        short datatype, byte[] data) throws Exception {
+      short datatype, byte[] data) throws Exception {
     this.ttl = ttl;
     this.reserved = reserved;
     this.datatype = datatype;
@@ -26,7 +26,7 @@ public class GossipAnnounce extends Message {
   public byte getTtl() {
     return this.ttl;
   }
-  
+
   // if ttl == 0, send it without doing anything
   // If ttl == 1, drop message
   // If ttl > 1, decrement ttl and send message
@@ -57,7 +57,7 @@ public class GossipAnnounce extends Message {
     this.ttl--;
   }
 
-  public ByteBuffer getByteBuffer(){
+  public ByteBuffer getByteBuffer() {
     try{
       short size = super.getSize();
       ByteBuffer buffer = ByteBuffer.allocate(size);

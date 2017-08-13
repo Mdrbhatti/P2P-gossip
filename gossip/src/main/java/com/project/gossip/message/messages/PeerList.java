@@ -36,7 +36,7 @@ public class PeerList extends Message {
   }
 
   public PeerList(short size, short type, short numOfPeers,
-                  ArrayList<String> peers) throws Exception {
+      ArrayList<String> peers) throws Exception {
     if ((MessageType.GOSSIP_PEER_LIST.getVal() != type) ||
         (numOfPeers != peers.size())) {
       throw new IllegalArgumentException();
@@ -57,16 +57,22 @@ public class PeerList extends Message {
     return this.peerAddrList;
   }
 
-  public ByteBuffer getByteBuffer() throws Exception {
-    short size = super.getSize();
-    ByteBuffer buffer = ByteBuffer.allocate(size);
-    buffer.putShort(size);
-    buffer.putShort(super.getType().getVal());
-    buffer.putShort(numOfPeers);
-    for (String peerIp : peerAddrList) {
-      buffer.putInt(convertIpStringToInt(peerIp));
-    }
+  public ByteBuffer getByteBuffer() {
+    try{
+      short size = super.getSize();
+      ByteBuffer buffer = ByteBuffer.allocate(size);
+      buffer.putShort(size);
+      buffer.putShort(super.getType().getVal());
+      buffer.putShort(numOfPeers);
+      for (String peerIp : peerAddrList) {
+        buffer.putInt(convertIpStringToInt(peerIp));
+      }
 
-    return buffer;
+      return buffer;
+    }
+    catch (Exception exp){
+      System.out.println("Unable to create PeerList bytebuffer");
+      return null;
+    }
   }
 }

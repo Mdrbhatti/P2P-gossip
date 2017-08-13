@@ -12,7 +12,7 @@ public class GossipValidation extends Message {
   private short reserved;
 
   public GossipValidation(short size, short type, short messageId,
-                          short reserved) throws Exception {
+      short reserved) throws Exception {
     this.messageId = messageId;
     this.reserved = reserved;
 
@@ -36,13 +36,19 @@ public class GossipValidation extends Message {
     }
   }
 
-  public ByteBuffer getByteBuffer() throws Exception {
-    short size = super.getSize();
-    ByteBuffer buffer = ByteBuffer.allocate(size);
-    buffer.putShort(size);
-    buffer.putShort(super.getType().getVal());
-    buffer.putShort(messageId);
-    buffer.putShort(reserved);
-    return buffer;
+  public ByteBuffer getByteBuffer() {
+    try{
+      short size = super.getSize();
+      ByteBuffer buffer = ByteBuffer.allocate(size);
+      buffer.putShort(size);
+      buffer.putShort(super.getType().getVal());
+      buffer.putShort(messageId);
+      buffer.putShort(reserved);
+      return buffer;
+    }
+    catch (Exception exp){
+      System.out.println("Unable to create gossip validation bytebuffer");
+      return null;
+    }
   }
 }

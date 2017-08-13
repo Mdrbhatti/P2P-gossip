@@ -1,6 +1,5 @@
 package com.project.gossip.p2p;
 
-import com.project.gossip.Peer;
 import com.project.gossip.PeerKnowledgeBase;
 import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
@@ -246,10 +245,11 @@ public class ProtocolServer extends Thread {
                   System.out.println("Gossip Announce Msg Received ");
                   short datatype = gossipAnnounceMsg.getDatatype();
                   if (PeerKnowledgeBase.containsDatatype(datatype)) {
-                    PeerKnowledgeBase.sendNotificationToModules(datatype, gossipAnnounceMsg);
+                    PeerKnowledgeBase.sendNotificationToModules(datatype,
+                        gossipAnnounceMsg, socketChannel);
                   } else {
                     System.out.println("No Module has subscribed for Datatype " +
-                        gossipAnnounceMsg.getDatatype() + " , dropping message");
+                        gossipAnnounceMsg.getDatatype() + " , dropping message ");
                   }
                   System.out.println("-------------------------------");
                 }
@@ -332,7 +332,6 @@ public class ProtocolServer extends Thread {
         registerChannelWithSelectors(socketChannel);
         sendHelloMessage(socketChannel, peerAddr);
         try {
-          Thread.sleep(2000);
         } catch (Exception exp) {
           exp.printStackTrace();
         }

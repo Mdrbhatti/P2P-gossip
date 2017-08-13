@@ -218,10 +218,21 @@ public class ApiServer extends Thread {
     return socketChannel;
   }
 
-  //TODO: cancel notify
   public void closeConnection(SocketChannel channel) {
     try {
       System.out.println("Connection to module closed");
+      synchronized (PeerKnowledgeBase.validDatatypes){
+        for(short datatype: PeerKnowledgeBase.validDatatypes.keySet()){
+          if(PeerKnowledgeBase.validDatatypes.get(datatype).contains(channel)){
+            if(PeerKnowledgeBase.validDatatypes.get(datatype).size()==1 ){
+              PeerKnowledgeBase.validDatatypes.remove(datatype);
+            }
+            else{
+              PeerKnowledgeBase.validDatatypes.get(datatype).remove(channel);
+            }
+          }
+        }
+      }
       channel.close();
     } catch (IOException exp) {
       exp.printStackTrace();

@@ -11,7 +11,7 @@ public class GossipNotify extends Message {
   private short datatype;
 
   public GossipNotify(short size, short type, short reserved,
-                      short datatype) throws Exception {
+      short datatype) throws Exception {
     this.reserved = reserved;
     this.datatype = datatype;
 
@@ -26,14 +26,21 @@ public class GossipNotify extends Message {
   public short getDatatype() {
     return this.datatype;
   }
-  
-  public ByteBuffer getByteBuffer() throws Exception {
-    short size = super.getSize();
-    ByteBuffer buffer = ByteBuffer.allocate(size);
-    buffer.putShort(size);
-    buffer.putShort(super.getType().getVal());
-    buffer.putShort(reserved);
-    buffer.putShort(datatype);
-    return buffer;
+
+  public ByteBuffer getByteBuffer() {
+    try{
+      short size = super.getSize();
+      ByteBuffer buffer = ByteBuffer.allocate(size);
+      buffer.putShort(size);
+      buffer.putShort(super.getType().getVal());
+      buffer.putShort(reserved);
+      buffer.putShort(datatype);
+      return buffer;
+    }
+    catch (Exception exp){
+      System.out.println("Unable to create gossip notify bytebuffer");
+      return null;
+    }
+
   }
 }

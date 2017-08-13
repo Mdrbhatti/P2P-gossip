@@ -35,13 +35,19 @@ public class HelloMessage extends Message {
     return ByteBuffer.wrap(InetAddress.getByName(IP).getAddress()).getInt();
   }
 
-  public ByteBuffer getByteBuffer() throws Exception {
-    short size = super.getSize();
-    ByteBuffer buffer = ByteBuffer.allocate(size);
-    buffer.putShort(size);
-    buffer.putShort(super.getType().getVal());
-    buffer.putInt(convertIpStringToInt(sourceIp));
-    return buffer;
+  public ByteBuffer getByteBuffer(){
+    try{
+      short size = super.getSize();
+      ByteBuffer buffer = ByteBuffer.allocate(size);
+      buffer.putShort(size);
+      buffer.putShort(super.getType().getVal());
+      buffer.putInt(convertIpStringToInt(sourceIp));
+      return buffer;
+    }
+    catch (Exception exp){
+      System.out.println("Unable to create hello message bytebuffer");
+      return null;
+    }
   }
 
   public String getSourceIp() {

@@ -25,6 +25,9 @@ public class PeerKnowledgeBase {
   //TODO maintain max size of cache
   public static List<CacheItem> cache = Collections.synchronizedList(new LinkedList<CacheItem>());
 
+  //Peer class parses conf file and sets max cache size
+  public static int maxCacheSize;
+
   public static short messageId = 0;
 
   public static ArrayList<String> getConnectedPeerIPs() {
@@ -112,8 +115,17 @@ public class PeerKnowledgeBase {
     }
   }
 
+  public static void removeCacheItem(short messageId){
+    cache.remove(messageId);
+  }
+
   // TODO add check if cache size exceeds limit
   public static void addDataItem(CacheItem item){
+    //remove oldest cacheitem to make space for latest items
+    if(cache.size() == maxCacheSize){
+      cache.remove(0);
+    }
+    //adds items at the tail of linked list
     cache.add(item);
   }
 

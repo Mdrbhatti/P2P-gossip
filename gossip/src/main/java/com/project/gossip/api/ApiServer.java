@@ -180,6 +180,7 @@ public class ApiServer extends Thread {
                   }
                   else{
                     System.out.println("Gossip Validation Msg Invalid");
+                    PeerKnowledgeBase.removeCacheItem(gossipValidation.getMessageId());
                   }
                   System.out.println("-------------------------------");
                 }

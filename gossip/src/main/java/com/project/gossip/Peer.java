@@ -55,6 +55,8 @@ public class Peer {
 
       this.cacheSize = Integer.parseInt(conf.getString("cache_size"));
 
+      PeerKnowledgeBase.maxCacheSize = cacheSize;
+
       protocolServer = new ProtocolServer(protocolServerAddr, protocolServerPort, bootStrapServerAddr,
           bootStrapServerPort);
 

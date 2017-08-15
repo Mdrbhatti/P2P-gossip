@@ -31,7 +31,7 @@ public class Peer {
 
   private int cacheSize;
 
-  private long send_peer_list_delay;
+  private long send_peer_list_delay = 10000;
 
   private MaintainOverlay maintainOverlay;
 
@@ -58,8 +58,10 @@ public class Peer {
       this.apiServerPort = Integer.parseInt(apiServerConf[1]);
 
       this.cacheSize = Integer.parseInt(conf.getString("cache_size"));
-      this.send_peer_list_delay = Long.parseLong(conf.getString
-          ("peer_list_send_delay"));
+      if(conf.containsKey("peer_list_send_delay")){
+        this.send_peer_list_delay = Long.parseLong(conf.getString
+            ("peer_list_send_delay"));
+      }
 
       PeerKnowledgeBase.maxCacheSize = cacheSize;
 

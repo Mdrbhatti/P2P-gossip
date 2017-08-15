@@ -111,8 +111,8 @@ public class Peer {
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
 
     // Initialize logger
-    String level = conf.getString("level");
-    P2PLogger logger = new P2PLogger(conf.getString("listen_address").split(":")[0], level);
+    String level = conf.getString("log_level");
+    P2PLogger logger = new P2PLogger(conf.getString("listen_address").split(":")[0]+".log", level);
 
     Peer driver = new Peer(conf, cli);
     driver.start(cli.isBootStrapServer);

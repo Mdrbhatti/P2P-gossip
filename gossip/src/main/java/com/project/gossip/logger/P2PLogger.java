@@ -24,7 +24,6 @@ public final class P2PLogger {
       e.printStackTrace();
       System.out.println("Failed to initialize logger!");
     }
-    logger.info("Logging [" + level + "] for " + id + " enabled!");
   }
 
   public static void log(Level level, String msg) {
@@ -32,5 +31,17 @@ public final class P2PLogger {
       System.out.print("Fatal! Logger is null");
     }
     logger.log(level, msg);
+  }
+
+  public static void info(String msg){
+    logger.info(msg);
+  }
+
+  public static void error(String msg){
+    logger.severe(msg);
+  }
+
+  public static void fine(String msg){
+    logger.fine(msg);
   }
 }

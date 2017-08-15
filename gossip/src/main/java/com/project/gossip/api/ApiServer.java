@@ -2,23 +2,25 @@ package com.project.gossip.api;
 
 import com.project.gossip.message.messageReader.GossipNotifyReader;
 import com.project.gossip.message.messageReader.GossipValidationReader;
+import com.project.gossip.message.messageReader.GossipAnnounceReader;
+import com.project.gossip.message.messages.GossipValidation;
 import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.message.messages.GossipNotify;
-import com.project.gossip.constants.Constants;
 import com.project.gossip.message.MessageType;
-import com.project.gossip.PeerKnowledgeBase;
-import com.project.gossip.message.messages.GossipValidation;
-import com.project.gossip.server.TcpServer;
-import com.project.gossip.message.messageReader.GossipAnnounceReader;
 
-import java.util.Iterator;
-import java.io.IOException;
+import com.project.gossip.constants.Constants;
+import com.project.gossip.PeerKnowledgeBase;
+import com.project.gossip.server.TcpServer;
 
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ClosedChannelException;
+
+import java.util.Iterator;
+import java.io.IOException;
+
 import java.nio.ByteBuffer;
 
 public class ApiServer extends Thread {

@@ -1,7 +1,5 @@
-===============================================================================
-          Procedure For Testing The Overlay Maintenance Of Peers
-===============================================================================
-
+#          Procedure For Testing The Overlay Maintenance Of Peers
+--------------------------------------------------------------------------------
 Degree is the number of peers the current peer has to exchange information with.
 There is a "max_connections" configuration parameter which defines the degree
 of a peer.  
@@ -12,7 +10,7 @@ of a peer.
 - If a peer's number of connected peers are less than degree, then it should 
   learn IPs of peers from neighboring peers and open new connections to them.
 
-Our Solution:
+###Our Solution:
 ------------
 
 We have created a MaintainOverlay Thread in com.project.gossip.p2p package.
@@ -24,9 +22,8 @@ setting the conf parameter "peer_list_send_delay=10000" in configuration file.
 
 
 
-===================================================================================
-                                  TEST Number 1
-====================================================================================             
+##                               TEST Number 1
+--------------------------------------------------------------------------------
 If a peer opens connection to another peer whose maximum connections(degree) is
 already satisfied, the connection request should be dropped
 
@@ -35,20 +32,19 @@ We will create 3 peers for testing, 3 different conf files will be used
 
 NOTE: Please follow the steps below in order to see the result!
 
-Compile and package
+###Compile and package
 --------------------
 cd P2P-gossip/gossip
 mvn clean package
 
-Start BootStrap Server
+###Start BootStrap Server
 ----------------------
 Note that switch -b specifies that it is a bootstrap server
 
 Command:
 java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b
 
-------
-PEER 1
+###PEER 1
 ------
 Peer 1 is allowed to connect to only one peer
 
@@ -66,8 +62,8 @@ peer_list_send_delay = 10000
 Command:
 java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf 
 
-------
-PEER 2
+
+###PEER 2
 ------
 Peer 2 is allowed to connect to only one peer
 
@@ -89,8 +85,8 @@ After you run this command, peer 2 will get peer 1's IP from bootstrap server
 and connect to it. Peer 1 and Peer 2 output will now show 1 connected peer.
 At this point peer 1 and 2 have their degrees fulfilled (1 max_connection).
 
--------
-Peer 3
+
+###Peer 3
 -------
 
 Now our goal is to start peer 3 with degree 2. When we will start peer 3, it will
@@ -126,28 +122,26 @@ Peer 3 will show output
 
 STOP ALL PROCESSES BEFORE STARTING TEST 2, INCLUDING BOOTSTRAP SERVER
 
-====================================================================================
-                                  TEST 2
-====================================================================================
+##                                TEST 2
+--------------------------------------------------------------------------------
 
 Peers learn about new peers from gossiping, then open connections to them if
 the number of their connected peers is less than their max_connections(degree)
 
 
-Compile and package
+###Compile and package
 --------------------
 cd P2P-gossip/gossip
 mvn clean package
 
-Start BootStrap Server
+###Start BootStrap Server
 ----------------------
 Note that switch -b specifies that it is a bootstrap server
 
 Command:
 java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b
 
-------
-PEER 1
+###PEER 1
 ------
 Peer 1 is allowed to connect to only one peer
 
@@ -165,8 +159,7 @@ peer_list_send_delay = 10000
 Command:
 java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf
 
-------
-PEER 2
+###PEER 2
 ------
 Peer 2 is allowed to connect two peers
 
@@ -188,10 +181,7 @@ After you run this command, peer 2 will get peer 1's IP from bootstrap server
 and connect to it. Peer 1 and Peer 2 output will now show 1 connected peer.
 At this point peer 1's degree is fullfilled but Peer 2 can connect to one more peer.
 
-
-
--------
-Peer 3
+###Peer 3
 -------
 
 Now our goal is to start peer 3 with degree 1. When we will start peer 3, it will

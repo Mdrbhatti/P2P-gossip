@@ -1,5 +1,6 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
 import com.project.gossip.constants.*;
@@ -17,6 +18,7 @@ public class PeerList extends Message {
   private ArrayList<String> peerAddrList;
 
   public PeerList(ArrayList<String> peers) throws Exception {
+
     this.numOfPeers = (short) peers.size();
     this.peerAddrList = new ArrayList<String>();
     for (String peerIP : peers) {
@@ -32,11 +34,11 @@ public class PeerList extends Message {
 
     super.setSize(size);
     super.setType(MessageType.GOSSIP_PEER_LIST.getVal());
-
   }
 
   public PeerList(short size, short type, short numOfPeers,
-      ArrayList<String> peers) throws Exception {
+                  ArrayList<String> peers) throws Exception {
+
     if ((MessageType.GOSSIP_PEER_LIST.getVal() != type) ||
         (numOfPeers != peers.size())) {
       throw new IllegalArgumentException();
@@ -46,7 +48,6 @@ public class PeerList extends Message {
     this.peerAddrList = peers;
     super.setSize(size);
     super.setType(type);
-
   }
 
   private int convertIpStringToInt(String IP) throws UnknownHostException {
@@ -58,6 +59,7 @@ public class PeerList extends Message {
   }
 
   public ByteBuffer getByteBuffer() {
+
     try{
       short size = super.getSize();
       ByteBuffer buffer = ByteBuffer.allocate(size);
@@ -67,11 +69,11 @@ public class PeerList extends Message {
       for (String peerIp : peerAddrList) {
         buffer.putInt(convertIpStringToInt(peerIp));
       }
-
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create PeerList bytebuffer");
+      P2PLogger.error("Unable to create PeerList bytebuffer");
+      exp.printStackTrace();
       return null;
     }
   }

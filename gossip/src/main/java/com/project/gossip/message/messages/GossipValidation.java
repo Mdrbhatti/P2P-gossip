@@ -1,7 +1,7 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
-
 
 import java.lang.Exception;
 import java.nio.ByteBuffer;
@@ -47,7 +47,8 @@ public class GossipValidation extends Message {
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create gossip validation bytebuffer");
+      P2PLogger.error("Unable to create gossip validation bytebuffer");
+      exp.printStackTrace();
       return null;
     }
   }

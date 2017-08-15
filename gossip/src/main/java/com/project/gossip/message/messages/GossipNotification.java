@@ -3,6 +3,7 @@ package com.project.gossip.message.messages;
 
 import java.nio.ByteBuffer;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 
 public class GossipNotification extends Message {
@@ -45,7 +46,8 @@ public class GossipNotification extends Message {
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create gossip notification bytebuffer");
+      P2PLogger.error("Unable to create gossip notification bytebuffer");
+      exp.printStackTrace();
       return null;
     }
   }

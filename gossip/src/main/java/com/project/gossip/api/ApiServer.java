@@ -1,5 +1,6 @@
 package com.project.gossip.api;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.messageReader.GossipNotifyReader;
 import com.project.gossip.message.messageReader.GossipValidationReader;
 import com.project.gossip.message.messageReader.GossipAnnounceReader;
@@ -23,6 +24,7 @@ import java.io.IOException;
 
 import java.nio.ByteBuffer;
 
+//Api server maintains connections with Gossip Modules
 public class ApiServer extends Thread {
 
   private ServerSocketChannel serverSocket;
@@ -33,8 +35,7 @@ public class ApiServer extends Thread {
   //256KB buffer
   private final int BUFFER_SIZE = 256 * 1024;
 
-  //single thread is servicing all channels, so no danger of conccurent access
-  //same buffer used for reading and writing
+  //buffer to read payload of a message
   private ByteBuffer payloadBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 
   //header buffer
@@ -53,20 +54,21 @@ public class ApiServer extends Thread {
   }
 
   public void run() {
+    P2PLogger.info("API Server started...");
     acceptAndReadEventLoop();
   }
 
-	/* This event loop handles read data events and new connections events
-     whenever we have a new connection we also register it with writeSelector
-		 which is responsible for returning all connections which are ready
-		 for data to be written to them */
-
+	/*
+	* Handles events for new connections, read events and connection termination
+	* events from Gossip Modules
+	*/
   public void acceptAndReadEventLoop() {
 
     while (true) {
       //wait for events
       int numOfChannelsReady = 0;
       try {
+        //select returns after every 5secs or when any channel fires an event
         numOfChannelsReady = acceptAndReadSelector.select(5000);
       } catch (IOException e) {
         e.printStackTrace();
@@ -84,7 +86,8 @@ public class ApiServer extends Thread {
 
         //new incoming connection event
         if (key.isAcceptable()) {
-          System.out.println("Accept Event Triggered");
+          P2PLogger.info("Some Gossip Moudle sent a Connection Request " +
+              "to API Server");
           SocketChannel channel = acceptNewConnection(key);
 
           if (channel != null && channel.isConnected()) {
@@ -132,16 +135,21 @@ public class ApiServer extends Thread {
                     GossipAnnounceReader.read
                         (headerBuffer, payloadBuffer);
                 if (gossipAnnounceMsg != null) {
-                  System.out.println("-------------------------------");
-                  System.out.println("Gossip " +
-                      "Announce Msg Received ");
+                  P2PLogger.info("Gossip Announce Msg Received from a Gossip" +
+                      "Module");
                   ByteBuffer writeBuffer = gossipAnnounceMsg.getByteBuffer();
                   if (writeBuffer != null) {
                     writeBuffer.flip();
+                    //send announce msg to all peers
                     PeerKnowledgeBase.sendBufferToAllPeers
                         (writeBuffer, "Gossip Announce Message");
+
+                    //send announce msg to all modules who have previously
+                    //registered for this datatype
+                    PeerKnowledgeBase.sendNotificationToModulesWithNoValidationExpected(
+                        gossipAnnounceMsg
+                    );
                   }
-                  System.out.println("-------------------------------");
                 }
               }
               if (MessageType.GOSSIP_NOTIFY.getVal() == type) {
@@ -149,33 +157,32 @@ public class ApiServer extends Thread {
                     GossipNotifyReader.read(headerBuffer,
                         payloadBuffer);
                 if (gossipNotify != null) {
-                  System.out.println("-------------------------------");
-                  System.out.println("Gossip " +
-                      "Notify Msg Received ");
-                  PeerKnowledgeBase.addValidDatatype(gossipNotify.getDatatype(), socketChannel);
-                  System.out.println("-------------------------------");
+                  P2PLogger.info("Gossip Notify Msg Received from a Gossip " +
+                      "Module");
+                  PeerKnowledgeBase.addValidDatatype(gossipNotify.getDatatype(),
+                                                     socketChannel);
                 }
               }
               if (MessageType.GOSSIP_VALIDATION.getVal() == type){
                 GossipValidation gossipValidation =
                     GossipValidationReader.read(headerBuffer, payloadBuffer);
                 if (gossipValidation != null){
-                  System.out.println("-------------------------------");
-                  System.out.println("Gossip Validation Msg Received ");
-                  if (gossipValidation.isValid()){
-                    System.out.println("Gossip Validation Msg Valid");
-                    PeerKnowledgeBase.sendGossipAnnounce(gossipValidation);
+                  if(gossipValidation.getMessageId()!=-1){
+                    P2PLogger.info("Gossip Validation Msg Received from a " +
+                        "Gossip Module");
+                    if (gossipValidation.isValid()){
+                      P2PLogger.info("Gossip Validation Msg Valid");
+                      PeerKnowledgeBase.sendGossipAnnounce(gossipValidation);
+                    }
+                    else{
+                      P2PLogger.info("Gossip Validation Msg Invalid");
+                      PeerKnowledgeBase.removeCacheItem(gossipValidation.getMessageId());
+                    }
                   }
-                  else{
-                    System.out.println("Gossip Validation Msg Invalid");
-                    PeerKnowledgeBase.removeCacheItem(gossipValidation.getMessageId());
-                  }
-                  System.out.println("-------------------------------");
                 }
-
               }
             }
-          } catch (IOException e) {
+          } catch (IOException exp) {
             // conn closed by remote disgracefully
             key.cancel();
             closeConnection(socketChannel);
@@ -190,14 +197,12 @@ public class ApiServer extends Thread {
 
   private void registerChannelWithSelectors(SocketChannel channel) {
 
-    //OP_READ : notify when there is data waiting to be read in channel
     try {
       channel.register(acceptAndReadSelector, SelectionKey.OP_READ);
     } catch (ClosedChannelException exp) {
+      P2PLogger.error("Unable to register Gossip Module with event loop");
       exp.printStackTrace();
     }
-    //OP_WRITE: notify when channel is ready for writing data
-    //channel.register(writeSelector, SelectionKey.OP_WRITE);
   }
 
   private SocketChannel acceptNewConnection(SelectionKey key) {
@@ -222,7 +227,7 @@ public class ApiServer extends Thread {
 
   public void closeConnection(SocketChannel channel) {
     try {
-      System.out.println("Connection to module closed");
+      P2PLogger.info("Connection to Gossip Module closed");
       synchronized (PeerKnowledgeBase.validDatatypes){
         for(short datatype: PeerKnowledgeBase.validDatatypes.keySet()){
           if(PeerKnowledgeBase.validDatatypes.get(datatype).contains(channel)){

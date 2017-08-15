@@ -1,12 +1,10 @@
 package com.project.gossip;
 
 import java.lang.Exception;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.project.gossip.p2p.MaintainOverlay;
 import com.project.gossip.p2p.ProtocolServer;
-import com.project.gossip.p2p.bootstrap.BootStrapServer;
+import com.project.gossip.bootstrap.BootStrapServer;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
@@ -33,8 +31,9 @@ public class Peer {
 
   private int cacheSize;
 
+  private long send_peer_list_delay;
+
   private MaintainOverlay maintainOverlay;
-  private static Logger logger;
 
   public Peer(SubnodeConfiguration conf, ProtocolCli cli) throws Exception {
 
@@ -54,6 +53,8 @@ public class Peer {
       this.apiServerPort = Integer.parseInt(apiServerConf[1]);
 
       this.cacheSize = Integer.parseInt(conf.getString("cache_size"));
+      this.send_peer_list_delay = Long.parseLong(conf.getString
+          ("peer_list_send_delay"));
 
       PeerKnowledgeBase.maxCacheSize = cacheSize;
 
@@ -62,7 +63,7 @@ public class Peer {
 
       apiServer = new ApiServer(apiServerAddr, apiServerPort);
 
-      maintainOverlay = new MaintainOverlay();
+      maintainOverlay = new MaintainOverlay(send_peer_list_delay);
 
       printConf();
     }
@@ -78,13 +79,14 @@ public class Peer {
 
 
   public void printConf() {
-    P2PLogger.log(Level.INFO, "Degree: " + degree);
-    P2PLogger.log(Level.SEVERE, "P2p Server Addr: " + protocolServerAddr);
-    P2PLogger.log(Level.FINE, "P2p Server Port: " + protocolServerPort);
-    P2PLogger.log(Level.WARNING, "Api Server Addr: " + apiServerAddr);
-    P2PLogger.log(Level.INFO, "Api Server Port: " + apiServerPort);
-    P2PLogger.log(Level.INFO, "Bootstrap Server Addr: " + bootStrapServerAddr);
-    P2PLogger.log(Level.INFO, "Bootstrap Server Port: " + bootStrapServerPort);
+    P2PLogger.info("P2p Server Addr: " + protocolServerAddr);
+    P2PLogger.info("P2p Server Port: " + protocolServerPort);
+    P2PLogger.info("Api Server Addr: " + apiServerAddr);
+    P2PLogger.info("Api Server Port: " + apiServerPort);
+    P2PLogger.info("Bootstrap Server Addr: " + bootStrapServerAddr);
+    P2PLogger.info("Bootstrap Server Port: " + bootStrapServerPort);
+    P2PLogger.info("Degree: " + degree);
+    P2PLogger.info("Send Peer List Delay: "+send_peer_list_delay);
   }
 
   public void start(boolean isBootStrapServer) {

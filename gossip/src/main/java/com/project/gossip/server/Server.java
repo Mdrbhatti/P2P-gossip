@@ -1,7 +1,6 @@
 package com.project.gossip.server;
 
 import java.net.InetAddress;
-import java.nio.channels.ServerSocketChannel;
 
 public class Server {
 

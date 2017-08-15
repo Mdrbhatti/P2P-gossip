@@ -14,21 +14,23 @@ import java.util.logging.Level;
 
 public class PeerKnowledgeBase {
 
-  //< Peer IP, Array of connected peer IPs>
+  // stores the peer IPs learnt from each connected peer
+  // key is conntected peer's IP and value is list of Peer IPs learnt from it
   public static Map<String, ArrayList<String>> knownPeers =
       Collections.synchronizedMap(new HashMap<String, ArrayList<String>>());
 
-  // key is ip address
+  // stores the IP and channel of connected peer
   public static Map<String, SocketChannel> connectedPeers =
       Collections.synchronizedMap(new HashMap<String, SocketChannel>());
 
-  //<datatype, Array of modules that sent notify msg for this datatype
+  // stores the datatype and all gossip modules that have sent a notify message
+  // for this datatype
   public static Map<Short, ArrayList<SocketChannel>> validDatatypes =
       Collections.synchronizedMap(new HashMap<Short, ArrayList<SocketChannel>>());
 
   //cache holds all gossip announce messages waiting for validation from modules
-  //TODO maintain max size of cache
-  public static List<CacheItem> cache = Collections.synchronizedList(new LinkedList<CacheItem>());
+  public static List<CacheItem> cache = Collections.synchronizedList(
+                                                    new LinkedList<CacheItem>());
 
   //Peer class parses conf file and sets max cache size
   public static int maxCacheSize;
@@ -43,6 +45,28 @@ public class PeerKnowledgeBase {
     return validDatatypes.containsKey(datatype);
   }
 
+  public static void sendNotificationToModulesWithNoValidationExpected(
+                                               GossipAnnounce gossipAnnounceMsg){
+    GossipNotification gossipNotificationMsg = null;
+    try {
+      gossipNotificationMsg = new GossipNotification(
+          gossipAnnounceMsg.getSize(), MessageType.GOSSIP_NOTIFICATION.getVal(),
+          (short)-1, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
+    } catch (Exception exp) {
+      P2PLogger.error("Unable to convert gossip announce msg to gossip " +
+          "notification");
+      exp.printStackTrace();
+      return;
+    }
+
+    ByteBuffer writeBuffer = gossipNotificationMsg.getByteBuffer();
+
+    if (writeBuffer != null) {
+      writeBuffer.flip();
+      sendBufferToAllSubscribedModules(writeBuffer, "Gossip Notification",
+          gossipNotificationMsg.getDatatype());
+    }
+  }
   public static void sendNotificationToModules(short datatype,
                                                GossipAnnounce gossipAnnounceMsg,
                                                SocketChannel originChannel) {
@@ -55,14 +79,12 @@ public class PeerKnowledgeBase {
           gossipAnnounceMsg.getSize(), MessageType.GOSSIP_NOTIFICATION.getVal(),
           messageId, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
     } catch (Exception exp) {
-      System.out.println("Unable to convert gossip announce msg to gossip notification");
+      P2PLogger.error("Unable to convert gossip announce msg to gossip " +
+          "notification");
       exp.printStackTrace();
       return;
     }
 
-    // Send notification to all registered modules
-    // Wait for a single validation
-    // Store message ID + gossip announce message
     ByteBuffer writeBuffer = gossipNotificationMsg.getByteBuffer();
 
     if (writeBuffer != null) {
@@ -91,7 +113,8 @@ public class PeerKnowledgeBase {
             writeBuffer = gossipAnnounceMsg.getByteBuffer();
             if (writeBuffer != null) {
               writeBuffer.flip();
-              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg", item.getOriginPeer());
+              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg",
+                                   item.getOriginPeer());
             }
           } else if (ttl > 1) {
             gossipAnnounceMsg.decrementTTL();
@@ -99,11 +122,12 @@ public class PeerKnowledgeBase {
             writeBuffer = gossipAnnounceMsg.getByteBuffer();
             if (writeBuffer != null) {
               writeBuffer.flip();
-              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg", item.getOriginPeer());
+              sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg",
+                                   item.getOriginPeer());
             }
           } else {
             //discard
-            System.out.println("Last Hop, dont announce msg");
+            P2PLogger.info("Last Hop, dont announce msg");
           }
           //remove cache item
           it.remove();
@@ -137,20 +161,21 @@ public class PeerKnowledgeBase {
     }
   }
 
-  // TODO: TEST THIS?
   public static void sendBufferToAllSubscribedModules(ByteBuffer buffer, String msg, Short datatype) {
-    ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
-    for (SocketChannel channel : modules) {
-      P2PLogger.log(Level.INFO, "Sending " + msg + " to module");
-      buffer.rewind();
-      if (channel.isConnected()) {
-        try {
-          while (buffer.hasRemaining()) {
-            channel.write(buffer);
+    if(validDatatypes.containsKey(datatype)){
+      ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
+      for (SocketChannel channel : modules) {
+        P2PLogger.info("Sending " + msg + " to module");
+        buffer.rewind();
+        if (channel.isConnected()) {
+          try {
+            while (buffer.hasRemaining()) {
+              channel.write(buffer);
+            }
+          } catch (IOException exp) {
+            P2PLogger.error("Unable to deliver " + msg + " to module");
+            exp.printStackTrace();
           }
-        } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending " + msg + " to module");
-          exp.printStackTrace();
         }
       }
     }
@@ -159,7 +184,7 @@ public class PeerKnowledgeBase {
   public static void sendBufferToAllPeers(ByteBuffer buffer, String msg,
                                           SocketChannel originChannel) {
     for (String peer : connectedPeers.keySet()) {
-      P2PLogger.log(Level.INFO, "Sending " + msg + " to: " + peer);
+      P2PLogger.info("Sending " + msg + " to: " + peer);
       buffer.rewind();
       SocketChannel channel = connectedPeers.get(peer);
       if (channel.isConnected() && !channel.equals(originChannel)) {
@@ -168,7 +193,8 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending " + msg + " to " + peer);
+          P2PLogger.error("Unable to deliver " + msg + " to " +
+              peer);
           exp.printStackTrace();
         }
       }
@@ -177,7 +203,7 @@ public class PeerKnowledgeBase {
 
   public static void sendBufferToAllPeers(ByteBuffer buffer, String msg) {
     for (String peer : connectedPeers.keySet()) {
-      P2PLogger.log(Level.INFO, "Sending " + msg + " to: " + peer);
+      P2PLogger.info("Sending " + msg + " to: " + peer);
       buffer.rewind();
       SocketChannel channel = connectedPeers.get(peer);
       if (channel.isConnected()) {
@@ -186,7 +212,7 @@ public class PeerKnowledgeBase {
             channel.write(buffer);
           }
         } catch (IOException exp) {
-          P2PLogger.log(Level.INFO, "Error while sending " + msg + " to " + peer);
+          P2PLogger.error("Unable to deliver  " + msg + " to " + peer);
           exp.printStackTrace();
         }
       }

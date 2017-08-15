@@ -1,14 +1,6 @@
 package com.project.gossip.constants;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-
 public final class Helpers {
-
-  public Helpers() {
-
-  }
 
   public static byte[] shortToBytes(short s) {
     return new byte[]{(byte) (s & 0x00FF), (byte) ((s & 0xFF00) >> 8)};
@@ -33,5 +25,4 @@ public final class Helpers {
     sb.append(arr[i]);
     return sb.toString();
   }
-
 }

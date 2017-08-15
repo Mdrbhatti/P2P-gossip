@@ -1,5 +1,6 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 
 import java.lang.Exception;
@@ -25,20 +26,6 @@ public class GossipAnnounce extends Message {
 
   public byte getTtl() {
     return this.ttl;
-  }
-
-  // if ttl == 0, send it without doing anything
-  // If ttl == 1, drop message
-  // If ttl > 1, decrement ttl and send message
-  public Boolean shouldGossipPropogate(){
-    if (this.ttl == 0){
-      return true;
-    }
-    else if (this.ttl > 1) {
-      this.ttl--;
-      return true;
-    }
-    return false;
   }
 
   public byte getReserved() {
@@ -70,7 +57,8 @@ public class GossipAnnounce extends Message {
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create gossip announce bytebuffer");
+      P2PLogger.error("Unable to create gossip announce bytebuffer");
+      exp.printStackTrace();
       return null;
     }
   }

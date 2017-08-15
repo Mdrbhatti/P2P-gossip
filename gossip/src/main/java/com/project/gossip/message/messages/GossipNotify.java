@@ -1,5 +1,6 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 
 import java.lang.Exception;
@@ -38,7 +39,8 @@ public class GossipNotify extends Message {
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create gossip notify bytebuffer");
+      P2PLogger.error("Unable to create gossip notify bytebuffer");
+      exp.printStackTrace();
       return null;
     }
 

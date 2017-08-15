@@ -59,7 +59,6 @@ public class ProtocolCli {
       }
 
     } catch (ParseException e) {
-      System.out.println("Failed to parse args");
       help();
     }
   }
@@ -67,6 +66,6 @@ public class ProtocolCli {
   private void help() {
     HelpFormatter formater = new HelpFormatter();
     formater.printHelp("Main", options);
-    System.exit(0);
+    System.exit(-1);
   }
 }

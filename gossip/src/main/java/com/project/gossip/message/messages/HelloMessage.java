@@ -1,8 +1,9 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
-import com.project.gossip.constants.*;
+import com.project.gossip.constants.Constants;
 
 import java.lang.Exception;
 import java.lang.IllegalArgumentException;
@@ -12,7 +13,7 @@ import java.nio.ByteBuffer;
 
 public class HelloMessage extends Message {
 
-  String sourceIp = "";
+  private String sourceIp = "";
 
   public HelloMessage(String sourceIp) throws Exception {
     super.setType(MessageType.GOSSIP_HELLO.getVal());
@@ -45,7 +46,8 @@ public class HelloMessage extends Message {
       return buffer;
     }
     catch (Exception exp){
-      System.out.println("Unable to create hello message bytebuffer");
+      P2PLogger.error("Unable to create hello message bytebuffer");
+      exp.printStackTrace();
       return null;
     }
   }

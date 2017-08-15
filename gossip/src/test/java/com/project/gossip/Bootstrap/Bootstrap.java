@@ -2,9 +2,7 @@ package com.project.gossip.Bootstrap;
 
 import com.project.gossip.bootstrap.BootStrapClient;
 import com.project.gossip.bootstrap.BootStrapServer;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 public class Bootstrap {
 
@@ -38,7 +36,6 @@ public class Bootstrap {
 		/*create a new client, now bootstrapserver will know about 2 peers
 		  127.0.0.1 and 127.0.0.2 */
 		Assert.assertEquals(getNewClient("127.0.0.2").getPeersList().size(), 2);
-		Assert.assertEquals(getNewClient("127.0.0.2").getPeersList().size(), 2);
-
 	}
+
 }

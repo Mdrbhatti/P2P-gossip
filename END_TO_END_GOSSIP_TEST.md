@@ -132,7 +132,8 @@ Note: Mock modules will open connections to the API servers of the peer (as give
       ```
 
 
-      If it's valid, it will broadcast the **Gossip Announce** message it received in 3 to the other two peers.
+      If it's valid, it will broadcast the **Gossip Announce** message it received in 3 to the other peers.
+      Note: Gossip Announce is not sent back to Peer 1 because it was actually received from it
       
       ```
       [23:36:38] INFO: Gossip Announce Msg Received from: 127.0.0.3

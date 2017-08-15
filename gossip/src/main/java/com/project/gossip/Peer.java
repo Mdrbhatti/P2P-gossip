@@ -79,9 +79,9 @@ public class Peer {
 
   public void printConf() {
     P2PLogger.log(Level.INFO, "Degree: " + degree);
-    P2PLogger.log(Level.INFO, "P2p Server Addr: " + protocolServerAddr);
-    P2PLogger.log(Level.INFO, "P2p Server Port: " + protocolServerPort);
-    P2PLogger.log(Level.INFO, "Api Server Addr: " + apiServerAddr);
+    P2PLogger.log(Level.SEVERE, "P2p Server Addr: " + protocolServerAddr);
+    P2PLogger.log(Level.FINE, "P2p Server Port: " + protocolServerPort);
+    P2PLogger.log(Level.WARNING, "Api Server Addr: " + apiServerAddr);
     P2PLogger.log(Level.INFO, "Api Server Port: " + apiServerPort);
     P2PLogger.log(Level.INFO, "Bootstrap Server Addr: " + bootStrapServerAddr);
     P2PLogger.log(Level.INFO, "Bootstrap Server Port: " + bootStrapServerPort);
@@ -97,6 +97,10 @@ public class Peer {
       this.bootStrapServer.listen();
     }
   }
+  
+  public String getProtocolServerAddr(){
+    return protocolServerAddr;
+  }
 
   public static void main(String[] args) throws Exception {
 
@@ -107,8 +111,8 @@ public class Peer {
     SubnodeConfiguration conf = confFile.getSection(cli.gossipSectionName);
 
     // Initialize logger
-    String id = conf.getString("id");
-    P2PLogger logger = new P2PLogger("peer", "peer" + id + ".log", "INFO");
+    String level = conf.getString("level");
+    P2PLogger logger = new P2PLogger(conf.getString("listen_address").split(":")[0], level);
 
     Peer driver = new Peer(conf, cli);
     driver.start(cli.isBootStrapServer);

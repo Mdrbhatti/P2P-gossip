@@ -11,7 +11,9 @@ public final class P2PLogger {
   public static FileHandler fh;
   public static SimpleFormatter formatter;
 
-  public P2PLogger(String id, String filePath, String level) {
+  public P2PLogger(String filePath, String level) {
+    System.setProperty("java.util.logging.SimpleFormatter.format", 
+        "[%1$tH:%1$tM:%1$tS] %4$s: %5$s%6$s%n");
     try {
       logger.setLevel(Level.parse(level));
       fh = new FileHandler(filePath);

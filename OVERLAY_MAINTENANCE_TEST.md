@@ -31,20 +31,22 @@ We will create 3 peers for testing, 3 different conf files will be used
 NOTE: Please follow the steps below in order to see the result!
 
 ### Compile and package
+```
 cd P2P-gossip/gossip
 mvn clean package
+```
 
 ### Start BootStrap Server
 Note that switch -b specifies that it is a bootstrap server
 
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b```
 
 ### PEER 1
 Peer 1 is allowed to connect to only one peer
 
 Change the max_connections value in config/gossip_127.0.0.1.conf file to 1
-
+```
 [gossip]
 cache_size = 50
 max_connections = 1
@@ -53,16 +55,16 @@ listen_address = 127.0.0.1:6001
 api_address = 127.0.0.1:7001
 log_level = FINE
 peer_list_send_delay = 10000
-
+```
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf 
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf ```
 
 
 ### PEER 2
 Peer 2 is allowed to connect to only one peer
 
 Change the max_connections value in config/gossip_127.0.0.2.conf file to 1
-
+```
 [gossip]
 cache_size = 50
 max_connections = 1
@@ -71,9 +73,10 @@ listen_address = 127.0.0.2:6001
 api_address = 127.0.0.2:7001
 log_level = FINE
 peer_list_send_delay = 10000
+```
 
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.2.conf
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.2.conf```
 
 After you run this command, peer 2 will get peer 1's IP from bootstrap server 
 and connect to it. Peer 1 and Peer 2 output will now show 1 connected peer.
@@ -87,7 +90,7 @@ to Peer 1 and Peer 2, but their max number of connections are 1 therefore they w
 drop Peer 3's connection request.
 
 Change the max_connections value in config/gossip_127.0.0.3.conf file to 2
-
+```
 [gossip]
 cache_size = 50
 max_connections = 2
@@ -96,46 +99,48 @@ listen_address = 127.0.0.3:6001
 api_address = 127.0.0.3:7001
 log_level = FINE
 peer_list_send_delay = 10000
-
+```
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.3.conf
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.3.conf```
 
 Peer 1 and Peer 2 will show output 
+```
 [21:36:08] INFO: Incoming Connection Request Denied, connected peers size 1 is equal to degree 1
+```
 
 
 Peer 3 will show output
+```
 [21:36:08] INFO: Trying to connect to: 127.0.0.2
 [21:36:08] INFO: Trying to connect to: 127.0.0.1
 [21:36:08] INFO: Size of Connected Peers: 0
 [21:36:08] INFO: Connection Request denied by peer
 [21:36:08] INFO: Connection Request denied by peer
-
+```
 
 STOP ALL PROCESSES BEFORE STARTING TEST 2, INCLUDING BOOTSTRAP SERVER
 
-##                                TEST 2
---------------------------------------------------------------------------------
+##                               TEST Number 2
 
 Peers learn about new peers from gossiping, then open connections to them if
 the number of their connected peers is less than their max_connections(degree)
 
 
 ### Compile and package
-cd P2P-gossip/gossip
-mvn clean package
+```cd P2P-gossip/gossip
+mvn clean package```
 
 ### Start BootStrap Server
 Note that switch -b specifies that it is a bootstrap server
 
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf -b```
 
 ### PEER 1
 Peer 1 is allowed to connect to only one peer
 
 Change the max_connections value in config/gossip_127.0.0.1.conf file to 1
-
+```
 [gossip]
 cache_size = 50
 max_connections = 1
@@ -144,15 +149,15 @@ listen_address = 127.0.0.1:6001
 api_address = 127.0.0.1:7001
 log_level = FINE
 peer_list_send_delay = 10000
-
+```
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.1.conf```
 
 ### PEER 2
 Peer 2 is allowed to connect two peers
 
 Change the max_connections value in config/gossip_127.0.0.2.conf file to 2
-
+```
 [gossip]
 cache_size = 50
 max_connections = 2
@@ -161,9 +166,9 @@ listen_address = 127.0.0.2:6001
 api_address = 127.0.0.2:7001
 log_level = FINE
 peer_list_send_delay = 10000
-
+```
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.2.conf
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.2.conf```
 
 After you run this command, peer 2 will get peer 1's IP from bootstrap server
 and connect to it. Peer 1 and Peer 2 output will now show 1 connected peer.
@@ -178,7 +183,7 @@ If Peer 3 tries to connect to Peer 1 connection will be dropped, but it will be
 successfull in connecting to Peer 2
 
 Change the max_connections value in config/gossip_127.0.0.3.conf file to 1
-
+```
 [gossip]
 cache_size = 50
 max_connections = 1
@@ -187,9 +192,9 @@ listen_address = 127.0.0.3:6001
 api_address = 127.0.0.3:7001
 log_level = FINE
 peer_list_send_delay = 10000
-
+```
 Command:
-java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.3.conf
+```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.3.conf```
 
 Now wait for 5 to 10 secs, Peer 1 will receive PeerListMessage from Peer 2
 and Peer 1 will learn about the IP of Peer 3. 

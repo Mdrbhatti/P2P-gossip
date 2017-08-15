@@ -19,7 +19,7 @@ public class HelloMessage extends Message {
     super.setType(MessageType.GOSSIP_HELLO.getVal());
     short size = Constants.HEADER_LENGTH + 4;
     super.setSize(size);
-    this.sourceIp = sourceIp;
+    setIP(sourceIp);
   }
 
   public HelloMessage(short size, short type, String sourceIp) throws Exception {
@@ -27,9 +27,46 @@ public class HelloMessage extends Message {
       throw new IllegalArgumentException();
     }
 
-    this.sourceIp = sourceIp;
+    setIP(sourceIp);
     super.setSize(size);
     super.setType(type);
+  }
+
+  public void setIP(String ip) {
+    if (validIP(ip)){
+      this.sourceIp = ip;
+    }
+    else {
+      throw new IllegalArgumentException("Invalid IP");
+    }
+  }
+
+  public  boolean validIP (String ip) {
+    try {
+      if ( ip == null || ip.isEmpty() ) {
+        return false;
+      }
+
+      String[] parts = ip.split( "\\." );
+      if ( parts.length != 4 ) {
+        return false;
+      }
+
+      for ( String s : parts ) {
+        int i = Integer.parseInt( s );
+        if ( (i < 0) || (i > 255) ) {
+          return false;
+        }
+      }
+      if ( ip.endsWith(".") ) {
+        return false;
+      }
+
+      return true;
+    } 
+    catch (NumberFormatException nfe) {
+      return false;
+    }
   }
 
   private int convertIpStringToInt(String IP) throws UnknownHostException {

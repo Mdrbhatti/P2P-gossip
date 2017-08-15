@@ -17,7 +17,7 @@ import java.util.HashSet;
 
 import java.util.ArrayList;
 
-public class BootStrapServer {
+public class BootStrapServer extends Thread{
 	private DatagramChannel serverSocket;
 	private ByteBuffer readBuffer;
 	private HashSet<String> peers = new HashSet<String>();
@@ -25,6 +25,10 @@ public class BootStrapServer {
 	public BootStrapServer(int port, String addr) throws Exception {
 		this.serverSocket = new UdpServer(port, addr).getServerSocket();
 		this.readBuffer = ByteBuffer.allocate(Constants.MAX_MESSAGE_LENGTH);
+	}
+
+	public void run(){
+		listen();
 	}
 
 	public void listen() {

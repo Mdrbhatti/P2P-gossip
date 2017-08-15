@@ -1,13 +1,16 @@
 package com.project.gossip.constants;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+
 public final class Helpers {
 
-  public static byte[] shortToBytes(short s) {
-    return new byte[]{(byte) (s & 0x00FF), (byte) ((s & 0xFF00) >> 8)};
+  public static int convertIpStringToInt(String IP) throws Exception {
+    return ByteBuffer.wrap(InetAddress.getByName(IP).getAddress()).getInt();
   }
 
   public static String convertIntIpToString(int ip) throws Exception {
-    //return InetAddress.getByName(Integer.toString(ip)).getHostAddress();
     String strIp =
         String.format("%d.%d.%d.%d.",
             (ip & 0xff),

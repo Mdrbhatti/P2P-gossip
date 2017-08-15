@@ -17,9 +17,18 @@ public class GossipNotification extends Message {
     this.messageId = messageId;
     this.datatype = datatype;
     this.data = data;
-
+    
+    setSizeWithData(size, data);
     super.setType(type);
+  }
+  
+  public void setSizeWithData(short size, byte[] data) {
+    short validSize = (short) ((Short.BYTES * 4) + (data.length));
+    if (validSize != size){
+      throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
+    }
     super.setSize(size);
+    this.data = data;
   }
 
   public short getMessageId() {

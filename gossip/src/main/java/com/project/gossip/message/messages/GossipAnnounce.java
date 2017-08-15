@@ -15,13 +15,35 @@ public class GossipAnnounce extends Message {
 
   public GossipAnnounce(short size, short type, byte ttl, byte reserved,
       short datatype, byte[] data) throws Exception {
-    this.ttl = ttl;
     this.reserved = reserved;
     this.datatype = datatype;
-    this.data = data;
 
-    super.setSize(size);
+    setSizeWithData(size, data);
     super.setType(type);
+
+    setTtl(ttl);
+  }
+
+  public void setSizeWithData(short size, byte[] data) {
+    short validSize = (short) ((Short.BYTES * 3) +(Byte.BYTES * 2) + (data.length));
+    if (validSize != size){
+      throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
+    }
+    super.setSize(size);
+    this.data = data;
+  }
+
+  public void checkMessageSize(byte [] data){
+
+  }
+
+  public void setTtl(byte ttl) {
+    if(ttl < 0) {
+      throw new IllegalArgumentException("TTL value must be >= 0");
+    }
+    else {
+      this.ttl = ttl;
+    }
   }
 
   public byte getTtl() {

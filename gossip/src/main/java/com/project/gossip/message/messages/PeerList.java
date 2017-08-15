@@ -24,7 +24,6 @@ public class PeerList extends Message {
     for (String peerIP : peers) {
       this.peerAddrList.add(peerIP);
     }
-
     //header size in bytes
     short size = Constants.HEADER_LENGTH;
     //numOfPeers size in bytes
@@ -32,7 +31,7 @@ public class PeerList extends Message {
     //peer list size in bytes
     size += (short) (peerAddrList.size() * 4);
 
-    super.setSize(size);
+    setSize(size, peers);
     super.setType(MessageType.GOSSIP_PEER_LIST.getVal());
   }
 
@@ -41,13 +40,21 @@ public class PeerList extends Message {
 
     if ((MessageType.GOSSIP_PEER_LIST.getVal() != type) ||
         (numOfPeers != peers.size())) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
     }
 
     this.numOfPeers = (short) peers.size();
     this.peerAddrList = peers;
-    super.setSize(size);
+    setSize(size, peers);
     super.setType(type);
+  }
+  
+  public void setSize(short size, ArrayList<String> peers) {
+    short validSize = (short) (Short.BYTES * 3 + (peers.size() * 4));
+    if (validSize != size){
+      throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
+    }
+    super.setSize(size);
   }
 
   private int convertIpStringToInt(String IP) throws UnknownHostException {

@@ -214,19 +214,6 @@ public class ProtocolServer extends Thread {
 									}
 									PeerKnowledgeBase.knownPeers.put(neighborAddress,
 											peerListMsg.getPeerAddrList());
-
-									//maintain degree, open new connections if needed
-									if (PeerKnowledgeBase.connectedPeers.size() < degree) {
-										for (String peerIp : peerListMsg.getPeerAddrList()) {
-											if (!PeerKnowledgeBase.connectedPeers.containsKey(peerIp) &&
-													(!peerIp.equals(peerAddr)) &&
-													(PeerKnowledgeBase.getConnectedPeerIPs().size() < degree)) {
-												P2PLogger.info("Opening a new connection to maintain" +
-														" degree");
-												initiateConnection(peerIp);
-											}
-										}
-									}
 								}
 							}
 							if (MessageType.GOSSIP_ANNOUNCE.getVal() == type) {

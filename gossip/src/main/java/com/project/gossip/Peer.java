@@ -43,6 +43,11 @@ public class Peer {
 
     if(!cli.isBootStrapServer){
       this.degree = Integer.parseInt(conf.getString("max_connections"));
+      if(this.degree<1){
+        P2PLogger.error("Degree can not be less than 1");
+        P2PLogger.error("Exiting..");
+        System.exit(-1);
+      }
 
       String[] p2pServerConf = serverConf(conf, "listen_address");
       this.protocolServerAddr = p2pServerConf[0];
@@ -63,7 +68,7 @@ public class Peer {
 
       apiServer = new ApiServer(apiServerAddr, apiServerPort);
 
-      maintainOverlay = new MaintainOverlay(send_peer_list_delay);
+      maintainOverlay = new MaintainOverlay(send_peer_list_delay, protocolServer);
 
       printConf();
     }

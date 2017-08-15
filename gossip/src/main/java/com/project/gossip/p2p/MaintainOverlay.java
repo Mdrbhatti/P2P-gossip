@@ -1,6 +1,7 @@
 package com.project.gossip.p2p;
 
 import com.project.gossip.PeerKnowledgeBase;
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.messages.PeerList;
 
 import java.nio.ByteBuffer;
@@ -17,9 +18,12 @@ import java.util.HashSet;
 public class MaintainOverlay extends Thread {
 
   private long delay;
+  //reference of protocol server
+  private ProtocolServer protocolServer;
 
-  public MaintainOverlay(long delay){
+  public MaintainOverlay(long delay, ProtocolServer protocolServer){
     this.delay = delay;
+    this.protocolServer = protocolServer;
   }
 
   public void run() {
@@ -45,6 +49,21 @@ public class MaintainOverlay extends Thread {
         writeBuffer.flip();
         PeerKnowledgeBase.sendBufferToAllPeers(writeBuffer, "Peer List" +
             " Message");
+
+        //maintain degree, open new connections if needed
+        if (PeerKnowledgeBase.connectedPeers.size() < protocolServer.getDegree()) {
+          for (String neighborIP : PeerKnowledgeBase.knownPeers.keySet()) {
+            for(String peerIP : PeerKnowledgeBase.knownPeers.get(neighborIP)){
+              if (!PeerKnowledgeBase.connectedPeers.containsKey(peerIP) &&
+                  (!peerIP.equals(protocolServer.myIp())) &&
+                  (PeerKnowledgeBase.getConnectedPeerIPs().size() < protocolServer.getDegree())) {
+                      P2PLogger.info("Opening a new connection to maintain " +
+                          "degree");
+                      protocolServer.initiateConnection(peerIP);
+              }
+            }
+          }
+        }
       } catch (Exception exp) {
         exp.printStackTrace();
       }

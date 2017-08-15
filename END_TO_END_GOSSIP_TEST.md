@@ -66,11 +66,11 @@ peer_list_send_delay = 10000
 3. Start peer 3 (P3)
 	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.Peer -c config/gossip_127.0.0.3.conf ```
 4. Start mock module for peer 1 (M1)
-	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.mockModules.MockModule -c config/gossip_127.0.0.1.conf ```
+	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.mockModules.MockModule -c config/gossip_127.0.0.1.conf ```
 5. Start mock module for peer 2 (M2)
-	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.mockModules.MockModule -c config/gossip_127.0.0.2.conf ```
+	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.mockModules.MockModule -c config/gossip_127.0.0.2.conf ```
 6. Start mock module for peer 3 (M3)
-	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.mockModules.MockModule -c config/gossip_127.0.0.3.conf ```
+	```java -cp target/gossip-1.0-SNAPSHOT-jar-with-dependencies.jar com.project.gossip.mockModules.MockModule -c config/gossip_127.0.0.3.conf ```
 
 Note: Mock modules will open connections to the API servers of the peer (as given in the config file)
 

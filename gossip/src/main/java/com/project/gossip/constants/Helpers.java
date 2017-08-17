@@ -1,7 +1,6 @@
 package com.project.gossip.constants;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public final class Helpers {

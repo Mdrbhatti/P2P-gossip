@@ -2,20 +2,21 @@ package com.project.gossip.message.messageReader;
 
 import com.project.gossip.constants.Helpers;
 import com.project.gossip.message.messages.HelloMessage;
+
 import java.nio.ByteBuffer;
 
-public class HelloMessageReader{
+public class HelloMessageReader {
 
-  public HelloMessageReader(){
+  public HelloMessageReader() {
 
   }
 
-  public static HelloMessage read(ByteBuffer buffer){
+  public static HelloMessage read(ByteBuffer buffer) {
     HelloMessage msg = null;
 
-    try{
+    try {
       //check for buffer underflow
-      if(!buffer.hasRemaining()){
+      if (!buffer.hasRemaining()) {
         return null;
       }
 
@@ -24,20 +25,19 @@ public class HelloMessageReader{
       String ip = Helpers.convertIntIpToString(buffer.getInt());
 
       msg = new HelloMessage(size, type, ip);
-    }
-    catch(Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
       return null;
     }
     return msg;
   }
 
-  public static HelloMessage read(ByteBuffer header, ByteBuffer payload){
+  public static HelloMessage read(ByteBuffer header, ByteBuffer payload) {
     HelloMessage msg = null;
 
-    try{
+    try {
       //check for buffer underflow
-      if(!header.hasRemaining() && !payload.hasRemaining()){
+      if (!header.hasRemaining() && !payload.hasRemaining()) {
         return null;
       }
 
@@ -46,8 +46,7 @@ public class HelloMessageReader{
       String ip = Helpers.convertIntIpToString(payload.getInt());
 
       msg = new HelloMessage(size, type, ip);
-    }
-    catch(Exception exp){
+    } catch (Exception exp) {
       exp.printStackTrace();
       return null;
     }

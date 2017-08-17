@@ -1,17 +1,14 @@
 package com.project.gossip;
 
-import java.lang.Exception;
-
 import org.apache.commons.cli.*;
 
 public class ProtocolCli {
 
-  private String[] args;
-  private Options options;
-
   public static String configFilePath;
   public static String gossipSectionName = "gossip";
   public static boolean isBootStrapServer = false;
+  private String[] args;
+  private Options options;
 
   public ProtocolCli(String[] args) {
 
@@ -54,7 +51,7 @@ public class ProtocolCli {
         gossipSectionName = cmd.getOptionValue("s");
       }
 
-      if(cmd.hasOption("b")){
+      if (cmd.hasOption("b")) {
         isBootStrapServer = true;
       }
 

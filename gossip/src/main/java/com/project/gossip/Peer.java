@@ -1,15 +1,12 @@
 package com.project.gossip;
 
-import java.lang.Exception;
-
+import com.project.gossip.api.ApiServer;
+import com.project.gossip.bootstrap.BootStrapServer;
+import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.p2p.MaintainOverlay;
 import com.project.gossip.p2p.ProtocolServer;
-import com.project.gossip.bootstrap.BootStrapServer;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
-
-import com.project.gossip.api.ApiServer;
-import com.project.gossip.logger.P2PLogger;
 
 public class Peer {
 
@@ -41,9 +38,9 @@ public class Peer {
     this.bootStrapServerAddr = bootStrapServerConf[0];
     this.bootStrapServerPort = Integer.parseInt(bootStrapServerConf[1]);
 
-    if(!cli.isBootStrapServer){
+    if (!cli.isBootStrapServer) {
       this.degree = Integer.parseInt(conf.getString("max_connections"));
-      if(this.degree<1){
+      if (this.degree < 1) {
         P2PLogger.error("Degree can not be less than 1");
         P2PLogger.error("Exiting..");
         System.exit(-1);
@@ -58,7 +55,7 @@ public class Peer {
       this.apiServerPort = Integer.parseInt(apiServerConf[1]);
 
       this.cacheSize = Integer.parseInt(conf.getString("cache_size"));
-      if(conf.containsKey("peer_list_send_delay")){
+      if (conf.containsKey("peer_list_send_delay")) {
         this.send_peer_list_delay = Long.parseLong(conf.getString
             ("peer_list_send_delay"));
       }
@@ -74,41 +71,10 @@ public class Peer {
 
       printConf();
     }
-    else{
+    else {
       this.bootStrapServer = new BootStrapServer(this.bootStrapServerPort,
           this.bootStrapServerAddr);
     }
-  }
-
-  private String[] serverConf(SubnodeConfiguration conf, String key) {
-    return conf.getString(key).split(":");
-  }
-
-
-  public void printConf() {
-    P2PLogger.info("P2p Server Addr: " + protocolServerAddr);
-    P2PLogger.info("P2p Server Port: " + protocolServerPort);
-    P2PLogger.info("Api Server Addr: " + apiServerAddr);
-    P2PLogger.info("Api Server Port: " + apiServerPort);
-    P2PLogger.info("Bootstrap Server Addr: " + bootStrapServerAddr);
-    P2PLogger.info("Bootstrap Server Port: " + bootStrapServerPort);
-    P2PLogger.info("Degree: " + degree);
-    P2PLogger.info("Send Peer List Delay: "+send_peer_list_delay);
-  }
-
-  public void start(boolean isBootStrapServer) {
-    if(!isBootStrapServer){
-      this.protocolServer.start();
-      this.maintainOverlay.start();
-      this.apiServer.start();
-    }
-    else{
-      this.bootStrapServer.listen();
-    }
-  }
-  
-  public String getProtocolServerAddr(){
-    return protocolServerAddr;
   }
 
   public static void main(String[] args) throws Exception {
@@ -121,9 +87,39 @@ public class Peer {
 
     // Initialize logger
     String level = conf.getString("log_level");
-    P2PLogger logger = new P2PLogger(conf.getString("listen_address").split(":")[0]+".log", level);
+    P2PLogger logger = new P2PLogger(conf.getString("listen_address").split(":")[0] + ".log", level);
 
     Peer driver = new Peer(conf, cli);
     driver.start(cli.isBootStrapServer);
+  }
+
+  private String[] serverConf(SubnodeConfiguration conf, String key) {
+    return conf.getString(key).split(":");
+  }
+
+  public void printConf() {
+    P2PLogger.info("P2p Server Addr: " + protocolServerAddr);
+    P2PLogger.info("P2p Server Port: " + protocolServerPort);
+    P2PLogger.info("Api Server Addr: " + apiServerAddr);
+    P2PLogger.info("Api Server Port: " + apiServerPort);
+    P2PLogger.info("Bootstrap Server Addr: " + bootStrapServerAddr);
+    P2PLogger.info("Bootstrap Server Port: " + bootStrapServerPort);
+    P2PLogger.info("Degree: " + degree);
+    P2PLogger.info("Send Peer List Delay: " + send_peer_list_delay);
+  }
+
+  public void start(boolean isBootStrapServer) {
+    if (!isBootStrapServer) {
+      this.protocolServer.start();
+      this.maintainOverlay.start();
+      this.apiServer.start();
+    }
+    else {
+      this.bootStrapServer.listen();
+    }
+  }
+
+  public String getProtocolServerAddr() {
+    return protocolServerAddr;
   }
 }

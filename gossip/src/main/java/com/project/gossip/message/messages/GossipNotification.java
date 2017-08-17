@@ -1,10 +1,10 @@
 package com.project.gossip.message.messages;
 
 
-import java.nio.ByteBuffer;
-
 import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
+
+import java.nio.ByteBuffer;
 
 public class GossipNotification extends Message {
 
@@ -13,18 +13,18 @@ public class GossipNotification extends Message {
   private byte[] data;
 
   public GossipNotification(short size, short type, short messageId,
-      short datatype, byte[] data) throws Exception {
+                            short datatype, byte[] data) throws Exception {
     this.messageId = messageId;
     this.datatype = datatype;
     this.data = data;
-    
+
     setSizeWithData(size, data);
     super.setType(type);
   }
-  
+
   public void setSizeWithData(short size, byte[] data) {
     short validSize = (short) ((Short.BYTES * 4) + (data.length));
-    if (validSize != size){
+    if (validSize != size) {
       throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
     }
     super.setSize(size);
@@ -44,7 +44,7 @@ public class GossipNotification extends Message {
   }
 
   public ByteBuffer getByteBuffer() {
-    try{
+    try {
       short size = super.getSize();
       ByteBuffer buffer = ByteBuffer.allocate(size);
       buffer.putShort(size);
@@ -53,8 +53,7 @@ public class GossipNotification extends Message {
       buffer.putShort(datatype);
       buffer.put(data);
       return buffer;
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       P2PLogger.error("Unable to create gossip notification bytebuffer");
       exp.printStackTrace();
       return null;

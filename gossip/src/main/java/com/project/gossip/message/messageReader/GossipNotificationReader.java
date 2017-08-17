@@ -1,6 +1,7 @@
 package com.project.gossip.message.messageReader;
 
 import com.project.gossip.message.messages.GossipNotification;
+
 import java.nio.ByteBuffer;
 
 public class GossipNotificationReader {

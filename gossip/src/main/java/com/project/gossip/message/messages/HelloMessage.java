@@ -1,12 +1,10 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.constants.Constants;
 import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
-import com.project.gossip.constants.Constants;
 
-import java.lang.Exception;
-import java.lang.IllegalArgumentException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -33,7 +31,7 @@ public class HelloMessage extends Message {
   }
 
   public void setIP(String ip) {
-    if (validIP(ip)){
+    if (validIP(ip)) {
       this.sourceIp = ip;
     }
     else {
@@ -41,30 +39,29 @@ public class HelloMessage extends Message {
     }
   }
 
-  public  boolean validIP (String ip) {
+  public boolean validIP(String ip) {
     try {
-      if ( ip == null || ip.isEmpty() ) {
+      if (ip == null || ip.isEmpty()) {
         return false;
       }
 
-      String[] parts = ip.split( "\\." );
-      if ( parts.length != 4 ) {
+      String[] parts = ip.split("\\.");
+      if (parts.length != 4) {
         return false;
       }
 
-      for ( String s : parts ) {
-        int i = Integer.parseInt( s );
-        if ( (i < 0) || (i > 255) ) {
+      for (String s : parts) {
+        int i = Integer.parseInt(s);
+        if ((i < 0) || (i > 255)) {
           return false;
         }
       }
-      if ( ip.endsWith(".") ) {
+      if (ip.endsWith(".")) {
         return false;
       }
 
       return true;
-    } 
-    catch (NumberFormatException nfe) {
+    } catch (NumberFormatException nfe) {
       return false;
     }
   }
@@ -73,16 +70,15 @@ public class HelloMessage extends Message {
     return ByteBuffer.wrap(InetAddress.getByName(IP).getAddress()).getInt();
   }
 
-  public ByteBuffer getByteBuffer(){
-    try{
+  public ByteBuffer getByteBuffer() {
+    try {
       short size = super.getSize();
       ByteBuffer buffer = ByteBuffer.allocate(size);
       buffer.putShort(size);
       buffer.putShort(super.getType().getVal());
       buffer.putInt(convertIpStringToInt(sourceIp));
       return buffer;
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       P2PLogger.error("Unable to create hello message bytebuffer");
       exp.printStackTrace();
       return null;

@@ -1,16 +1,14 @@
 package com.project.gossip.message.messages;
 
+import com.project.gossip.constants.*;
 import com.project.gossip.logger.P2PLogger;
 import com.project.gossip.message.Message;
 import com.project.gossip.message.MessageType;
-import com.project.gossip.constants.*;
 
-import java.lang.Exception;
-import java.net.UnknownHostException;
-
-import java.util.ArrayList;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 public class PeerList extends Message {
 
@@ -48,10 +46,10 @@ public class PeerList extends Message {
     setSize(size, peers);
     super.setType(type);
   }
-  
+
   public void setSize(short size, ArrayList<String> peers) {
     short validSize = (short) (Short.BYTES * 3 + (peers.size() * 4));
-    if (validSize != size){
+    if (validSize != size) {
       throw new IllegalArgumentException("Size of message must be equal to its length in bytes");
     }
     super.setSize(size);
@@ -67,7 +65,7 @@ public class PeerList extends Message {
 
   public ByteBuffer getByteBuffer() {
 
-    try{
+    try {
       short size = super.getSize();
       ByteBuffer buffer = ByteBuffer.allocate(size);
       buffer.putShort(size);
@@ -77,8 +75,7 @@ public class PeerList extends Message {
         buffer.putInt(convertIpStringToInt(peerIp));
       }
       return buffer;
-    }
-    catch (Exception exp){
+    } catch (Exception exp) {
       P2PLogger.error("Unable to create PeerList bytebuffer");
       exp.printStackTrace();
       return null;

@@ -1,40 +1,30 @@
 package com.project.gossip.api;
 
+import com.project.gossip.PeerKnowledgeBase;
+import com.project.gossip.constants.Constants;
 import com.project.gossip.logger.P2PLogger;
+import com.project.gossip.message.MessageType;
+import com.project.gossip.message.messageReader.GossipAnnounceReader;
 import com.project.gossip.message.messageReader.GossipNotifyReader;
 import com.project.gossip.message.messageReader.GossipValidationReader;
-import com.project.gossip.message.messageReader.GossipAnnounceReader;
-import com.project.gossip.message.messages.GossipValidation;
 import com.project.gossip.message.messages.GossipAnnounce;
 import com.project.gossip.message.messages.GossipNotify;
-import com.project.gossip.message.MessageType;
-
-import com.project.gossip.constants.Constants;
-import com.project.gossip.PeerKnowledgeBase;
+import com.project.gossip.message.messages.GossipValidation;
 import com.project.gossip.server.TcpServer;
 
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ClosedChannelException;
-
-import java.util.Iterator;
 import java.io.IOException;
-
 import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import java.util.Iterator;
 
 //Api server maintains connections with Gossip Modules
 public class ApiServer extends Thread {
 
-  private ServerSocketChannel serverSocket;
-
-  //selector for new connections and read data events
-  public Selector acceptAndReadSelector;
-
   //256KB buffer
   private final int BUFFER_SIZE = 256 * 1024;
-
+  //selector for new connections and read data events
+  public Selector acceptAndReadSelector;
+  private ServerSocketChannel serverSocket;
   //buffer to read payload of a message
   private ByteBuffer payloadBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 
@@ -58,10 +48,10 @@ public class ApiServer extends Thread {
     acceptAndReadEventLoop();
   }
 
-	/*
-	* Handles events for new connections, read events and connection termination
-	* events from Gossip Modules
-	*/
+  /*
+  * Handles events for new connections, read events and connection termination
+  * events from Gossip Modules
+  */
   public void acceptAndReadEventLoop() {
 
     while (true) {
@@ -109,7 +99,8 @@ public class ApiServer extends Thread {
             if (bytesRead == -1) {
               key.cancel();
               closeConnection(socketChannel);
-            } else {
+            }
+            else {
 
               //change the header buffer to read mode
               headerBuffer.flip();
@@ -160,21 +151,21 @@ public class ApiServer extends Thread {
                   P2PLogger.info("Gossip Notify Msg Received from a Gossip " +
                       "Module");
                   PeerKnowledgeBase.addValidDatatype(gossipNotify.getDatatype(),
-                                                     socketChannel);
+                      socketChannel);
                 }
               }
-              if (MessageType.GOSSIP_VALIDATION.getVal() == type){
+              if (MessageType.GOSSIP_VALIDATION.getVal() == type) {
                 GossipValidation gossipValidation =
                     GossipValidationReader.read(headerBuffer, payloadBuffer);
-                if (gossipValidation != null){
-                  if(gossipValidation.getMessageId()!=-1){
+                if (gossipValidation != null) {
+                  if (gossipValidation.getMessageId() != -1) {
                     P2PLogger.info("Gossip Validation Msg Received from a " +
                         "Gossip Module");
-                    if (gossipValidation.isValid()){
+                    if (gossipValidation.isValid()) {
                       P2PLogger.info("Gossip Validation Msg Valid");
                       PeerKnowledgeBase.sendGossipAnnounce(gossipValidation);
                     }
-                    else{
+                    else {
                       P2PLogger.info("Gossip Validation Msg Invalid");
                       PeerKnowledgeBase.removeCacheItem(gossipValidation.getMessageId());
                     }
@@ -228,13 +219,13 @@ public class ApiServer extends Thread {
   public void closeConnection(SocketChannel channel) {
     try {
       P2PLogger.info("Connection to Gossip Module closed");
-      synchronized (PeerKnowledgeBase.validDatatypes){
-        for(short datatype: PeerKnowledgeBase.validDatatypes.keySet()){
-          if(PeerKnowledgeBase.validDatatypes.get(datatype).contains(channel)){
-            if(PeerKnowledgeBase.validDatatypes.get(datatype).size()==1 ){
+      synchronized (PeerKnowledgeBase.validDatatypes) {
+        for (short datatype : PeerKnowledgeBase.validDatatypes.keySet()) {
+          if (PeerKnowledgeBase.validDatatypes.get(datatype).contains(channel)) {
+            if (PeerKnowledgeBase.validDatatypes.get(datatype).size() == 1) {
               PeerKnowledgeBase.validDatatypes.remove(datatype);
             }
-            else{
+            else {
               PeerKnowledgeBase.validDatatypes.get(datatype).remove(channel);
             }
           }

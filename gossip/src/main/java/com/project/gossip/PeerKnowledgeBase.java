@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
-import java.util.logging.Level;
 
 public class PeerKnowledgeBase {
 
@@ -30,7 +29,7 @@ public class PeerKnowledgeBase {
 
   //cache holds all gossip announce messages waiting for validation from modules
   public static List<CacheItem> cache = Collections.synchronizedList(
-                                                    new LinkedList<CacheItem>());
+      new LinkedList<CacheItem>());
 
   //Peer class parses conf file and sets max cache size
   public static int maxCacheSize;
@@ -46,12 +45,12 @@ public class PeerKnowledgeBase {
   }
 
   public static void sendNotificationToModulesWithNoValidationExpected(
-                                               GossipAnnounce gossipAnnounceMsg){
+      GossipAnnounce gossipAnnounceMsg) {
     GossipNotification gossipNotificationMsg = null;
     try {
       gossipNotificationMsg = new GossipNotification(
           gossipAnnounceMsg.getSize(), MessageType.GOSSIP_NOTIFICATION.getVal(),
-          (short)-1, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
+          (short) -1, gossipAnnounceMsg.getDatatype(), gossipAnnounceMsg.getData());
     } catch (Exception exp) {
       P2PLogger.error("Unable to convert gossip announce msg to gossip " +
           "notification");
@@ -67,6 +66,7 @@ public class PeerKnowledgeBase {
           gossipNotificationMsg.getDatatype());
     }
   }
+
   public static void sendNotificationToModules(short datatype,
                                                GossipAnnounce gossipAnnounceMsg,
                                                SocketChannel originChannel) {
@@ -114,18 +114,20 @@ public class PeerKnowledgeBase {
             if (writeBuffer != null) {
               writeBuffer.flip();
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg",
-                                   item.getOriginPeer());
+                  item.getOriginPeer());
             }
-          } else if (ttl > 1) {
+          }
+          else if (ttl > 1) {
             gossipAnnounceMsg.decrementTTL();
 
             writeBuffer = gossipAnnounceMsg.getByteBuffer();
             if (writeBuffer != null) {
               writeBuffer.flip();
               sendBufferToAllPeers(writeBuffer, "Gossip Announce Msg",
-                                   item.getOriginPeer());
+                  item.getOriginPeer());
             }
-          } else {
+          }
+          else {
             //discard
             P2PLogger.info("Last Hop, dont announce msg");
           }
@@ -156,13 +158,14 @@ public class PeerKnowledgeBase {
       ArrayList<SocketChannel> arr = new ArrayList<SocketChannel>();
       arr.add(channel);
       validDatatypes.put(datatype, arr);
-    } else {
+    }
+    else {
       validDatatypes.get(datatype).add(channel);
     }
   }
 
   public static void sendBufferToAllSubscribedModules(ByteBuffer buffer, String msg, Short datatype) {
-    if(validDatatypes.containsKey(datatype)){
+    if (validDatatypes.containsKey(datatype)) {
       ArrayList<SocketChannel> modules = validDatatypes.get(datatype);
       for (SocketChannel channel : modules) {
         P2PLogger.info("Sending " + msg + " to module");

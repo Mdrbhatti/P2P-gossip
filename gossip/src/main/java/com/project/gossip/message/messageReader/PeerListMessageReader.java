@@ -3,9 +3,8 @@ package com.project.gossip.message.messageReader;
 import com.project.gossip.constants.Helpers;
 import com.project.gossip.message.messages.PeerList;
 
-import java.lang.Exception;
-import java.util.ArrayList;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 
 public class PeerListMessageReader {

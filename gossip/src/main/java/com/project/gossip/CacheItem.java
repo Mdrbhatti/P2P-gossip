@@ -9,7 +9,7 @@ public class CacheItem {
   private short messageId;
   //socket channel who has sent this gossip Announce Msg
   private SocketChannel originPeer;
-  
+
   public CacheItem(GossipAnnounce msg, short msgId,
                    SocketChannel originPeer) {
     this.gossipAnnounceMsg = msg;

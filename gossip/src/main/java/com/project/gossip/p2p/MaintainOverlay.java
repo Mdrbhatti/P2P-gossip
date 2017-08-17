@@ -21,7 +21,7 @@ public class MaintainOverlay extends Thread {
   //reference of protocol server
   private ProtocolServer protocolServer;
 
-  public MaintainOverlay(long delay, ProtocolServer protocolServer){
+  public MaintainOverlay(long delay, ProtocolServer protocolServer) {
     this.delay = delay;
     this.protocolServer = protocolServer;
   }
@@ -34,12 +34,12 @@ public class MaintainOverlay extends Thread {
 
         HashSet<String> peerIps = new HashSet<String>();
         //add ips of directly connected neighbors
-        for(String peerIp : PeerKnowledgeBase.getConnectedPeerIPs()){
+        for (String peerIp : PeerKnowledgeBase.getConnectedPeerIPs()) {
           peerIps.add(peerIp);
         }
 
-        for(String neighborPeer : PeerKnowledgeBase.knownPeers.keySet()){
-          for(String peerIp : PeerKnowledgeBase.knownPeers.get(neighborPeer)){
+        for (String neighborPeer : PeerKnowledgeBase.knownPeers.keySet()) {
+          for (String peerIp : PeerKnowledgeBase.knownPeers.get(neighborPeer)) {
             peerIps.add(peerIp);
           }
         }
@@ -53,13 +53,13 @@ public class MaintainOverlay extends Thread {
         //maintain degree, open new connections if needed
         if (PeerKnowledgeBase.connectedPeers.size() < protocolServer.getDegree()) {
           for (String neighborIP : PeerKnowledgeBase.knownPeers.keySet()) {
-            for(String peerIP : PeerKnowledgeBase.knownPeers.get(neighborIP)){
+            for (String peerIP : PeerKnowledgeBase.knownPeers.get(neighborIP)) {
               if (!PeerKnowledgeBase.connectedPeers.containsKey(peerIP) &&
                   (!peerIP.equals(protocolServer.myIp())) &&
                   (PeerKnowledgeBase.getConnectedPeerIPs().size() < protocolServer.getDegree())) {
-                      P2PLogger.info("Opening a new connection to maintain " +
-                          "degree");
-                      protocolServer.initiateConnection(peerIP);
+                P2PLogger.info("Opening a new connection to maintain " +
+                    "degree");
+                protocolServer.initiateConnection(peerIP);
               }
             }
           }

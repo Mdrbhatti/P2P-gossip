@@ -15,10 +15,8 @@ Group Number:
 
 - 35
 
-To compile and execute the code please look into OVERLAY_MAINTENANCE_TEST.md and END_TO_END_GOSSIP_TEST.md files
+To compile and execute the code look into OVERLAY_MAINTENANCE_TEST.md and END_TO_END_GOSSIP_TEST.md files
 
-mvn clean package
-
-To run the unit tests:
+To run the tests:
 
 mvn -Dtest=* test
